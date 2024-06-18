@@ -15,9 +15,13 @@ mongoose.connect('mongodb+srv://fedesuarez16:Fedesss10@mydb.m6gwsyc.mongodb.net/
 });
 
 const app = express();
-const port = 3000;
-// Allow requests from your React app on port 3001
-app.use(cors({   origin: ['https://lionseg-erp.vercel.app', 'http://localhost:3000']}));
+const port = process.env.PORT || 3000;
+
+// Configuración de CORS
+app.use(cors({
+  origin: ['https://lionseg-erp.vercel.app'] // Añade todos los orígenes permitidos aquí
+}));
+
 app.use(bodyParser.json());
 // Serve static files from the 'public' directory
 app.use(express.static('public'));
@@ -188,7 +192,7 @@ app.post('/api/generar-facturas', async (req, res) => {
 
       console.log(`Factura generada para ${cliente.name}`);
 
-      const facturaLink = `https://localhost:3000/facturas/${fileName}`;
+      const facturaLink = `https://localhost:3000/facturas/${fileName}`; // Cambiar a HTTPS si es necesario
       enlacesFacturas.push(facturaLink);
 
       await transporter.sendMail({
@@ -207,7 +211,6 @@ app.post('/api/generar-facturas', async (req, res) => {
     res.status(500).json({ error });
   }
 });
-
 
 // Define the route to update the state of an invoice link
 app.put('/api/clientes/:clienteId/invoiceLinks/:invoiceLinkId/state', async (req, res) => {
