@@ -144,6 +144,16 @@ app.post('/api/generar-facturas', async (req, res) => {
 
       doc.pipe(fs.createWriteStream(`public/facturas/${fileName}`));
 
+      // Add logo
+      const logoPath = 'path/to/logo.png'; // Replace with the path to your logo
+      if (fs.existsSync(logoPath)) {
+        doc.image(logoPath, {
+          fit: [150, 150],
+          align: 'center',
+          valign: 'center'
+        });
+      }
+
       // Get the current date and calculate the expiration date
       const invoiceDate = new Date();
       const expirationDate = new Date();
@@ -167,13 +177,28 @@ app.post('/api/generar-facturas', async (req, res) => {
       doc.moveDown();
 
       doc.fontSize(16).text(`Servicio: ${service.producto || 'N/A'}`);
-      doc.fontSize(14).text(`Monto a Pagar: ${service.price || 0}`);
+      doc.fontSize(14).text(`Monto a Pagar:`, { continued: true }).font('Helvetica-Bold').text(`${service.price || 0}`);
       doc.moveDown();
 
       doc.fontSize(14).text(`Detalles del Servicio: ${service.domains ? service.domains.join(', ') : 'N/A'}`);
       doc.moveDown();
 
       doc.fontSize(14).text(`Método de Pago: ${service.paymentMethod || 'N/A'}`);
+      doc.moveDown();
+
+      // Add bank details
+      doc.fontSize(16).text(`Banco Patagonia:`);
+      doc.fontSize(14).text(`Alias: PAJARO.SABADO.LARGO`);
+      doc.fontSize(14).text(`CBU: 0340040108409895361003`);
+      doc.fontSize(14).text(`Cuenta: CA $  040-409895361-000`);
+      doc.fontSize(14).text(`CUIL: 20224964162`);
+      doc.moveDown();
+
+      // Add Mercado Pago details
+      doc.fontSize(16).text(`Mercado Pago:`);
+      doc.fontSize(14).text(`Alias: lionseg.mp`);
+      doc.fontSize(14).text(`CVU: 0000003100041927153583`);
+      doc.fontSize(14).text(`Número: 1125071506 (Jorge Luis Castillo)`);
       doc.moveDown();
 
       doc.end();
