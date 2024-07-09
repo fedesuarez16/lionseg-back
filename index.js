@@ -163,9 +163,7 @@ app.post('/api/generar-facturas', async (req, res) => {
 
       const invoiceNumber = `INV-${Date.now()}`;
 
-      
-      doc.image(logoPath, { fit: [100, 100], align: 'right' });
-      
+  
       doc.fontSize(20).text(`Factura para: ${cliente.name}`, { align: 'center' });
       doc.moveDown(2);
       
@@ -241,7 +239,6 @@ app.post('/api/generar-facturas', async (req, res) => {
       doc.fontSize(12).fillColor('black').text(`Número: 1125071506 (Jorge Luis Castillo)`, rightColumnX, columnTop + 45);
       
       doc.end();
-      
       const invoice = {
         fileName,
         state: 'pending',
