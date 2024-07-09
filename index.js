@@ -145,100 +145,76 @@ app.post('/api/generar-facturas', async (req, res) => {
       doc.pipe(fs.createWriteStream(`public/facturas/${fileName}`));
 
       // Add logo
-      const logoPath = 'C:\Users\fedes\clients-panel\server\logo.png'; // Replace with the path to your logo server\logo.png
+      const logoPath = 'C:\\Users\\fedes\\clients-panel\\server\\logo.png'; // Replace with the path to your logo server\logo.png
       if (fs.existsSync(logoPath)) {
-        doc.image(logoPath, {
-          fit: [150, 150],
-          align: 'center',
-          valign: 'center'
-        });
+        doc.image(logoPath, 50, 45, { width: 50 });
       }
 
-      // Get the current date and calculate the expiration date
+      // Add invoice title
+      doc.fontSize(20).text('Factura', 110, 57);
+
+      // Add invoice metadata
       const invoiceDate = new Date();
       const expirationDate = new Date();
       expirationDate.setDate(invoiceDate.getDate() + 7); // 7 days from the invoice date
-
-      const service = cliente.services.length > 0 ? cliente.services[0] : {};
-
       const invoiceNumber = `INV-${Date.now()}`;
 
-  
-      doc.fontSize(20).text(`Factura para: ${cliente.name}`, { align: 'center' });
+      doc.fontSize(10)
+        .text(`Fecha de la Factura: ${invoiceDate.toLocaleDateString()}`, 200, 65, { align: 'right' })
+        .text(`Fecha de Vencimiento: ${expirationDate.toLocaleDateString()}`, 200, 80, { align: 'right' })
+        .text(`Número de Factura: ${invoiceNumber}`, 200, 95, { align: 'right' });
+
       doc.moveDown(2);
-      
-      // Add invoice metadata
-      doc.fontSize(14).text(`Número de Factura: ${invoiceNumber}`, { align: 'left' });
-      doc.fontSize(14).text(`Fecha de la Factura: ${invoiceDate.toDateString()}`, { align: 'left' });
-      doc.fontSize(14).text(`Fecha de Vencimiento: ${expirationDate.toDateString()}`, { align: 'left' });
-      doc.moveDown(2);
-      
+
       // Add client details
-      doc.fontSize(14).text(`Datos del Cliente:`, { align: 'left', underline: true });
-      doc.fontSize(12).text(`Nombre: ${cliente.name}`, { align: 'left' });
-      doc.fontSize(12).text(`Email: ${cliente.email}`, { align: 'left' });
-      doc.fontSize(12).text(`Teléfono: ${cliente.phoneNumber}`, { align: 'left' });
+      doc.text(`Facturado a:`, 50, 160)
+        .text(`${cliente.name}`, 50, 175)
+        .text(`${cliente.address || 'Dirección no proporcionada'}`, 50, 190)
+        .text(`${cliente.city || ''}, ${cliente.state || ''}, ${cliente.zip || ''}`, 50, 205)
+        .text(`${cliente.country || 'País no proporcionado'}`, 50, 220);
+
       doc.moveDown(2);
-      
-      // Add service details in table format
-      doc.fontSize(14).text(`Detalles del Servicio:`, { align: 'left', underline: true });
-      doc.moveDown(0.5);
-      
-      const tableTop = doc.y;
-      const itemDescriptionX = 50;
-      const itemPriceX = 300;
-      
-      // Table header
-      doc.fontSize(12).fillColor('black').text('Descripción', itemDescriptionX, tableTop);
-      doc.fontSize(12).fillColor('black').text('Precio', itemPriceX, tableTop);
-      
-      const tableRow = (y, description, price, isEven) => {
-        const bgColor = isEven ? '#f3f3f3' : '#e0e0e0';
-        doc.rect(40, y - 10, 500, 20).fill(bgColor).stroke();
-        doc.fillColor('black').fontSize(12)
-          .text(description, itemDescriptionX, y)
-          .text(price, itemPriceX, y);
-      };
-      
-      // Adding service details to the table with alternating row colors
+
+      // Add service details
+      const service = cliente.services.length > 0 ? cliente.services[0] : {};
       const services = [
         { description: service.producto || 'N/A', price: service.price || 0 }
       ];
-      
+
+      doc.text('Descripción', 50, 280, { bold: true })
+        .text('Total', 450, 280, { align: 'right', bold: true });
+
       services.forEach((item, index) => {
-        const y = tableTop + 20 + index * 20;
-        tableRow(y, item.description, item.price, index % 2 === 0);
+        const y = 300 + index * 20;
+        doc.text(item.description, 50, y)
+          .text(`$${item.price.toFixed(2)} ARS`, 450, y, { align: 'right' });
       });
-      
+
+      const subTotal = services.reduce((sum, item) => sum + item.price, 0);
+      const recargo = subTotal * 0.1;
+      const total = subTotal + recargo;
+
       doc.moveDown(2);
-      
-      // Add total amount
-      doc.fontSize(14).fillColor('black').text(`Monto Total:`, { align: 'left' });
-      doc.fontSize(14).text(`$ ${service.price || 0}`, { align: 'left', continued: true }).font('Helvetica-Bold').text(`${service.price || 0}`);
-      doc.moveDown(2);
-      
-      // Add payment methods in two columns
-      doc.fontSize(14).fillColor('black').text(`Métodos de Pago:`, { align: 'left', underline: true });
-      doc.moveDown(0.5);
-      
-      const columnTop = doc.y;
-      const leftColumnX = 50;
-      const rightColumnX = 300;
-      
-      // Banco Patagonia details
-      doc.fontSize(12).fillColor('black').text(`Banco Patagonia:`, leftColumnX, columnTop);
-      doc.fontSize(12).fillColor('black').text(`Alias: PAJARO.SABADO.LARGO`, leftColumnX, columnTop + 15);
-      doc.fontSize(12).fillColor('black').text(`CBU: 0340040108409895361003`, leftColumnX, columnTop + 30);
-      doc.fontSize(12).fillColor('black').text(`Cuenta: CA $  040-409895361-000`, leftColumnX, columnTop + 45);
-      doc.fontSize(12).fillColor('black').text(`CUIL: 20224964162`, leftColumnX, columnTop + 60);
-      
-      // Mercado Pago details
-      doc.fontSize(12).fillColor('black').text(`Mercado Pago:`, rightColumnX, columnTop);
-      doc.fontSize(12).fillColor('black').text(`Alias: lionseg.mp`, rightColumnX, columnTop + 15);
-      doc.fontSize(12).fillColor('black').text(`CVU: 0000003100041927153583`, rightColumnX, columnTop + 30);
-      doc.fontSize(12).fillColor('black').text(`Número: 1125071506 (Jorge Luis Castillo)`, rightColumnX, columnTop + 45);
-      
+
+      // Add totals
+      doc.text(`Sub Total: $${subTotal.toFixed(2)} ARS`, 400, 400, { align: 'right' })
+        .text(`Recargo por falta de pago a término: $${recargo.toFixed(2)} ARS`, 400, 415, { align: 'right' })
+        .text(`Total: $${total.toFixed(2)} ARS`, 400, 430, { align: 'right', bold: true });
+
+      // Add payment methods
+      doc.moveDown(2).text(`Métodos de Pago:`, 50, 500)
+        .text(`Banco Patagonia:`, 50, 515)
+        .text(`Alias: PAJARO.SABADO.LARGO`, 50, 530)
+        .text(`CBU: 0340040108409895361003`, 50, 545)
+        .text(`Cuenta: CA $ 040-409895361-000`, 50, 560)
+        .text(`CUIL: 20224964162`, 50, 575)
+        .text(`Mercado Pago:`, 300, 515)
+        .text(`Alias: lionseg.mp`, 300, 530)
+        .text(`CVU: 0000003100041927153583`, 300, 545)
+        .text(`Número: 1125071506 (Jorge Luis Castillo)`, 300, 560);
+
       doc.end();
+
       const invoice = {
         fileName,
         state: 'pending',
