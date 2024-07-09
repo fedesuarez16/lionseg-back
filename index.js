@@ -249,6 +249,7 @@ app.post('/api/generar-facturas', async (req, res) => {
   }
 });
 
+
 // Define the route to update the state of an invoice link
 app.put('/api/clientes/:clienteId/invoiceLinks/:invoiceLinkId/state', async (req, res) => {
   const { clienteId, invoiceLinkId } = req.params;
