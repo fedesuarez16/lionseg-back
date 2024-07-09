@@ -124,129 +124,124 @@ app.post('/api/clientes/:id/invoices', async (req, res) => {
 // Generate invoices for all active clients
 app.post('/api/generar-facturas', async (req, res) => {
   try {
+    // Filtrar solo clientes activos
     const clientes = await Cliente.find({ state: 'activo' });
 
     const enlacesFacturas = [];
 
     for (const cliente of clientes) {
-      try {
-        const doc = new PDFDocument({ margin: 40 });
-        const fileName = `factura_${cliente._id}_${Date.now()}.pdf`;
+      const doc = new PDFDocument();
+      const fileName = `factura_${cliente._id}_${Date.now()}.pdf`;
 
-        const dirFacturas = 'public/facturas';
-        if (!fs.existsSync(dirFacturas)) {
-          fs.mkdirSync(dirFacturas, { recursive: true });
+      const dirFacturas = 'public/facturas';
+      if (!fs.existsSync(dirFacturas)) {
+        const dirPublic = 'public';
+        if (!fs.existsSync(dirPublic)) {
+          fs.mkdirSync(dirPublic);
         }
-
-        const filePath = path.join(dirFacturas, fileName);
-        doc.pipe(fs.createWriteStream(filePath));
-
-        // Add logo
-        const logoPath = path.join(__dirname, 'logo.png'); // Replace with the path to your logo
-        if (fs.existsSync(logoPath)) {
-          doc.image(logoPath, 50, 45, { width: 150 });
-        }
-
-        // Get the current date and calculate the expiration date
-        const invoiceDate = new Date();
-        const expirationDate = new Date();
-        expirationDate.setDate(invoiceDate.getDate() + 7); // 7 days from the invoice date
-
-        const service = cliente.services.length > 0 ? cliente.services[0] : {};
-
-        const invoiceNumber = `INV-${Date.now()}`;
-
-        // Header
-        doc.fontSize(20).text('FACTURA', { align: 'center' });
-        doc.moveDown(2);
-
-        // Invoice metadata
-        doc.fontSize(12).text(`Factura nº ${invoiceNumber}`, { align: 'right' });
-        doc.text(`Fecha de la Factura: ${invoiceDate.toLocaleDateString()}`, { align: 'right' });
-        doc.text(`Fecha de Vencimiento: ${expirationDate.toLocaleDateString()}`, { align: 'right' });
-        doc.moveDown(1);
-
-        // Client details
-        doc.fontSize(12).text(`Facturado a: ${cliente.name}`, { align: 'left' });
-        doc.text(`Email: ${cliente.email}`, { align: 'left' });
-        doc.text(`Teléfono: ${cliente.phoneNumber}`, { align: 'left' });
-        doc.moveDown(1);
-
-        // Service details
-        doc.fontSize(12).text('Descripción', 50, doc.y);
-        doc.text('Total', 400, doc.y);
-        doc.moveDown(0.5);
-
-        doc.fontSize(12).text(service.producto || 'Servicio no especificado', 50, doc.y);
-        doc.text(`$${service.price.toFixed(2) || '0.00'} ARS`, 400, doc.y);
-        doc.moveDown(1);
-
-        // Subtotal, credit, and total
-        doc.fontSize(12).text(`Sub Total`, 50, doc.y);
-        doc.text(`$${service.price.toFixed(2) || '0.00'} ARS`, 400, doc.y);
-        doc.moveDown(0.5);
-
-        doc.text('Crédito', 50, doc.y);
-        doc.text('$0.00 ARS', 400, doc.y);
-        doc.moveDown(0.5);
-
-        doc.text('Total', 50, doc.y);
-        doc.text(`$${service.price.toFixed(2) || '0.00'} ARS`, 400, doc.y);
-        doc.moveDown(2);
-
-        // Payment methods
-        doc.fontSize(12).text('Métodos de Pago:', { underline: true });
-        doc.moveDown(0.5);
-
-        // Banco Patagonia details
-        doc.text('Banco Patagonia:', 50, doc.y);
-        doc.text('Alias: PAJARO.SABADO.LARGO', 70, doc.y + 15);
-        doc.text('CBU: 0340040108409895361003', 70, doc.y + 30);
-        doc.text('Cuenta: CA $  040-409895361-000', 70, doc.y + 45);
-        doc.text('CUIL: 20224964162', 70, doc.y + 60);
-        doc.moveDown(2);
-
-        // Mercado Pago details
-        doc.text('Mercado Pago:', 50, doc.y);
-        doc.text('Alias: lionseg.mp', 70, doc.y + 15);
-        doc.text('CVU: 0000003100041927153583', 70, doc.y + 30);
-        doc.text('Número: 1125071506 (Jorge Luis Castillo)', 70, doc.y + 45);
-        doc.moveDown(2);
-
-        // Footer
-        doc.fontSize(10).text('PDF Generado el ' + new Date().toLocaleDateString(), { align: 'right' });
-        doc.text('Powered by TCPDF (www.tcpdf.org)', { align: 'right' });
-
-        doc.end();
-
-        const invoice = {
-          fileName,
-          state: 'pending',
-          registrationDate: invoiceDate,
-          expirationDate,
-          invoiceNumber,
-          total: service.price || 0,
-        };
-
-        cliente.invoiceLinks.push(invoice);
-        await cliente.save();
-
-        const facturaLink = `https://localhost:3000/facturas/${fileName}`; // Cambiar a HTTPS si es necesario
-        enlacesFacturas.push(facturaLink);
-
-        await transporter.sendMail({
-          from: 'coflipweb@gmail.com',
-          to: cliente.email,
-          subject: 'Factura',
-          text: 'Se adjunta la factura.',
-          attachments: [{ filename: fileName, path: filePath }],
-        });
-
-      } catch (error) {
-        console.error(`Error al generar la factura para el cliente ${cliente.name}:`, error);
+        fs.mkdirSync(dirFacturas);
       }
+
+      doc.pipe(fs.createWriteStream(`public/facturas/${fileName}`));
+
+      // Add logo
+      const logoPath = 'C:\\Users\\fedes\\clients-panel\\server\\logo.png'; // Replace with the path to your logo server\logo.png
+      if (fs.existsSync(logoPath)) {
+        doc.image(logoPath, 50, 45, { width: 50 });
+      }
+
+      // Add invoice title
+      doc.fontSize(20).text('Factura', 110, 57);
+
+      // Add invoice metadata
+      const invoiceDate = new Date();
+      const expirationDate = new Date();
+      expirationDate.setDate(invoiceDate.getDate() + 7); // 7 days from the invoice date
+      const invoiceNumber = `INV-${Date.now()}`;
+
+      doc.fontSize(10)
+        .text(`Fecha de la Factura: ${invoiceDate.toLocaleDateString()}`, 200, 65, { align: 'right' })
+        .text(`Fecha de Vencimiento: ${expirationDate.toLocaleDateString()}`, 200, 80, { align: 'right' })
+        .text(`Número de Factura: ${invoiceNumber}`, 200, 95, { align: 'right' });
+
+      doc.moveDown(2);
+
+      // Add client details
+      doc.text(`Facturado a:`, 50, 160)
+        .text(`${cliente.name}`, 50, 175)
+        .text(`${cliente.address || 'Dirección no proporcionada'}`, 50, 190)
+        .text(`${cliente.city || ''}, ${cliente.state || ''}, ${cliente.zip || ''}`, 50, 205)
+        .text(`${cliente.country || 'País no proporcionado'}`, 50, 220);
+
+      doc.moveDown(2);
+
+      // Add service details
+      const service = cliente.services.length > 0 ? cliente.services[0] : {};
+      const services = [
+        { description: service.producto || 'N/A', price: service.price || 0 }
+      ];
+
+      doc.text('Descripción', 50, 280, { bold: true })
+        .text('Total', 450, 280, { align: 'right', bold: true });
+
+      services.forEach((item, index) => {
+        const y = 300 + index * 20;
+        doc.text(item.description, 50, y)
+          .text(`$${item.price.toFixed(2)} ARS`, 450, y, { align: 'right' });
+      });
+
+      const subTotal = services.reduce((sum, item) => sum + item.price, 0);
+      const recargo = subTotal * 0.1;
+      const total = subTotal + recargo;
+
+      doc.moveDown(2);
+
+      // Add totals
+      doc.text(`Sub Total: $${subTotal.toFixed(2)} ARS`, 400, 400, { align: 'right' })
+        .text(`Recargo por falta de pago a término: $${recargo.toFixed(2)} ARS`, 400, 415, { align: 'right' })
+        .text(`Total: $${total.toFixed(2)} ARS`, 400, 430, { align: 'right', bold: true });
+
+      // Add payment methods
+      doc.moveDown(2).text(`Métodos de Pago:`, 50, 500)
+        .text(`Banco Patagonia:`, 50, 515)
+        .text(`Alias: PAJARO.SABADO.LARGO`, 50, 530)
+        .text(`CBU: 0340040108409895361003`, 50, 545)
+        .text(`Cuenta: CA $ 040-409895361-000`, 50, 560)
+        .text(`CUIL: 20224964162`, 50, 575)
+        .text(`Mercado Pago:`, 300, 515)
+        .text(`Alias: lionseg.mp`, 300, 530)
+        .text(`CVU: 0000003100041927153583`, 300, 545)
+        .text(`Número: 1125071506 (Jorge Luis Castillo)`, 300, 560);
+
+      doc.end();
+
+      const invoice = {
+        fileName,
+        state: 'pending',
+        registrationDate: invoiceDate,
+        expirationDate,
+        invoiceNumber,
+        total: service.price || 0,
+      };
+
+      cliente.invoiceLinks.push(invoice);
+      await cliente.save();
+
+      console.log(`Factura generada para ${cliente.name}`);
+
+      const facturaLink = `https://localhost:3000/facturas/${fileName}`; // Cambiar a HTTPS si es necesario
+      enlacesFacturas.push(facturaLink);
+
+      await transporter.sendMail({
+        from: 'coflipweb@gmail.com',
+        to: cliente.email,
+        subject: 'Factura',
+        text: 'Se adjunta la factura.',
+        attachments: [{ filename: fileName, path: `./public/facturas/${fileName}` }],
+      });
     }
 
+    console.log('Facturas generadas con éxito');
     res.status(200).json({ message: 'Facturas generadas con éxito', enlacesFacturas });
   } catch (error) {
     console.error('Error al generar las facturas:', error);
