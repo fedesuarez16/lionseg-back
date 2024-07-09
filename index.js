@@ -163,71 +163,85 @@ app.post('/api/generar-facturas', async (req, res) => {
 
       const invoiceNumber = `INV-${Date.now()}`;
 
-  
-doc.fontSize(20).text(`Factura para: ${cliente.name}`, { align: 'center' });
-doc.moveDown(2);
-
-// Add invoice metadata
-doc.fontSize(14).text(`Número de Factura: ${invoiceNumber}`, { align: 'left' });
-doc.fontSize(14).text(`Fecha de la Factura: ${invoiceDate.toDateString()}`, { align: 'left' });
-doc.fontSize(14).text(`Fecha de Vencimiento: ${expirationDate.toDateString()}`, { align: 'left' });
-doc.moveDown(2);
-
-// Add client details
-doc.fontSize(14).text(`Datos del Cliente:`, { align: 'left', underline: true });
-doc.fontSize(12).text(`Nombre: ${cliente.name}`, { align: 'left' });
-doc.fontSize(12).text(`Email: ${cliente.email}`, { align: 'left' });
-doc.fontSize(12).text(`Teléfono: ${cliente.phoneNumber}`, { align: 'left' });
-doc.moveDown(2);
-
-// Add service details in table format
-doc.fontSize(14).text(`Detalles del Servicio:`, { align: 'left', underline: true });
-doc.moveDown(0.5);
-
-const tableTop = doc.y;
-const itemDescriptionX = 50;
-const itemPriceX = 300;
-
-doc.fontSize(12).text('Descripción', itemDescriptionX, tableTop);
-doc.fontSize(12).text('Precio', itemPriceX, tableTop);
-
-const tableRow = (y, description, price) => {
-  doc.rect(40, y - 10, 500, 20).fill('#f3f3f3').stroke('#000');
-  doc.fontSize(12)
-    .text(description, itemDescriptionX, y)
-    .text(price, itemPriceX, y);
-};
-
-tableRow(tableTop + 20, service.producto || 'N/A', service.price || 0);
-doc.moveDown(2);
-
-// Add total amount
-doc.fontSize(14).text(`Monto Total:`, { align: 'left' });
-doc.fontSize(14).text(`$ ${service.price || 0}`, { align: 'left', continued: true }).font('Helvetica-Bold').text(`${service.price || 0}`);
-doc.moveDown(2);
-
-// Add payment methods in two columns
-doc.fontSize(14).text(`Métodos de Pago:`, { align: 'left', underline: true });
-doc.moveDown(0.5);
-
-const columnTop = doc.y;
-const leftColumnX = 50;
-const rightColumnX = 300;
-
-// Banco Patagonia details
-doc.fontSize(12).text(`Banco Patagonia:`, leftColumnX, columnTop);
-doc.fontSize(12).text(`Alias: PAJARO.SABADO.LARGO`, leftColumnX, columnTop + 15);
-doc.fontSize(12).text(`CBU: 0340040108409895361003`, leftColumnX, columnTop + 30);
-doc.fontSize(12).text(`Cuenta: CA $  040-409895361-000`, leftColumnX, columnTop + 45);
-doc.fontSize(12).text(`CUIL: 20224964162`, leftColumnX, columnTop + 60);
-
-// Mercado Pago details
-doc.fontSize(12).text(`Mercado Pago:`, rightColumnX, columnTop);
-doc.fontSize(12).text(`Alias: lionseg.mp`, rightColumnX, columnTop + 15);
-doc.fontSize(12).text(`CVU: 0000003100041927153583`, rightColumnX, columnTop + 30);
-doc.fontSize(12).text(`Número: 1125071506 (Jorge Luis Castillo)`, rightColumnX, columnTop + 45);
-
-doc.end();
+      
+      doc.image(logoPath, { fit: [100, 100], align: 'right' });
+      
+      doc.fontSize(20).text(`Factura para: ${cliente.name}`, { align: 'center' });
+      doc.moveDown(2);
+      
+      // Add invoice metadata
+      doc.fontSize(14).text(`Número de Factura: ${invoiceNumber}`, { align: 'left' });
+      doc.fontSize(14).text(`Fecha de la Factura: ${invoiceDate.toDateString()}`, { align: 'left' });
+      doc.fontSize(14).text(`Fecha de Vencimiento: ${expirationDate.toDateString()}`, { align: 'left' });
+      doc.moveDown(2);
+      
+      // Add client details
+      doc.fontSize(14).text(`Datos del Cliente:`, { align: 'left', underline: true });
+      doc.fontSize(12).text(`Nombre: ${cliente.name}`, { align: 'left' });
+      doc.fontSize(12).text(`Email: ${cliente.email}`, { align: 'left' });
+      doc.fontSize(12).text(`Teléfono: ${cliente.phoneNumber}`, { align: 'left' });
+      doc.moveDown(2);
+      
+      // Add service details in table format
+      doc.fontSize(14).text(`Detalles del Servicio:`, { align: 'left', underline: true });
+      doc.moveDown(0.5);
+      
+      const tableTop = doc.y;
+      const itemDescriptionX = 50;
+      const itemPriceX = 300;
+      
+      // Table header
+      doc.fontSize(12).fillColor('black').text('Descripción', itemDescriptionX, tableTop);
+      doc.fontSize(12).fillColor('black').text('Precio', itemPriceX, tableTop);
+      
+      const tableRow = (y, description, price, isEven) => {
+        const bgColor = isEven ? '#f3f3f3' : '#e0e0e0';
+        doc.rect(40, y - 10, 500, 20).fill(bgColor).stroke();
+        doc.fillColor('black').fontSize(12)
+          .text(description, itemDescriptionX, y)
+          .text(price, itemPriceX, y);
+      };
+      
+      // Adding service details to the table with alternating row colors
+      const services = [
+        { description: service.producto || 'N/A', price: service.price || 0 }
+      ];
+      
+      services.forEach((item, index) => {
+        const y = tableTop + 20 + index * 20;
+        tableRow(y, item.description, item.price, index % 2 === 0);
+      });
+      
+      doc.moveDown(2);
+      
+      // Add total amount
+      doc.fontSize(14).fillColor('black').text(`Monto Total:`, { align: 'left' });
+      doc.fontSize(14).text(`$ ${service.price || 0}`, { align: 'left', continued: true }).font('Helvetica-Bold').text(`${service.price || 0}`);
+      doc.moveDown(2);
+      
+      // Add payment methods in two columns
+      doc.fontSize(14).fillColor('black').text(`Métodos de Pago:`, { align: 'left', underline: true });
+      doc.moveDown(0.5);
+      
+      const columnTop = doc.y;
+      const leftColumnX = 50;
+      const rightColumnX = 300;
+      
+      // Banco Patagonia details
+      doc.fontSize(12).fillColor('black').text(`Banco Patagonia:`, leftColumnX, columnTop);
+      doc.fontSize(12).fillColor('black').text(`Alias: PAJARO.SABADO.LARGO`, leftColumnX, columnTop + 15);
+      doc.fontSize(12).fillColor('black').text(`CBU: 0340040108409895361003`, leftColumnX, columnTop + 30);
+      doc.fontSize(12).fillColor('black').text(`Cuenta: CA $  040-409895361-000`, leftColumnX, columnTop + 45);
+      doc.fontSize(12).fillColor('black').text(`CUIL: 20224964162`, leftColumnX, columnTop + 60);
+      
+      // Mercado Pago details
+      doc.fontSize(12).fillColor('black').text(`Mercado Pago:`, rightColumnX, columnTop);
+      doc.fontSize(12).fillColor('black').text(`Alias: lionseg.mp`, rightColumnX, columnTop + 15);
+      doc.fontSize(12).fillColor('black').text(`CVU: 0000003100041927153583`, rightColumnX, columnTop + 30);
+      doc.fontSize(12).fillColor('black').text(`Número: 1125071506 (Jorge Luis Castillo)`, rightColumnX, columnTop + 45);
+      
+      doc.end();
+      
       const invoice = {
         fileName,
         state: 'pending',
