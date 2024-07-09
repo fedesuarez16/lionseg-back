@@ -163,45 +163,61 @@ app.post('/api/generar-facturas', async (req, res) => {
 
       const invoiceNumber = `INV-${Date.now()}`;
 
-      // Add invoice details to the PDF
-      doc.fontSize(20).text(`Factura para: ${cliente.name}`, { align: 'center' });
-      doc.fontSize(16).text(`Número de Factura: ${invoiceNumber}`);
-      doc.fontSize(16).text(`Fecha de la Factura: ${invoiceDate.toDateString()}`);
-      doc.fontSize(16).text(`Fecha de Vencimiento: ${expirationDate.toDateString()}`);
-      doc.moveDown();
+   // Add invoice details to the PDF
+doc.fontSize(20).text(`Factura para: ${cliente.name}`, { align: 'center' });
+doc.moveDown(1.5);  // Espacio entre el título y los textos debajo
 
-      doc.fontSize(16).text(`Datos del Cliente:`);
-      doc.fontSize(14).text(`Nombre: ${cliente.name}`);
-      doc.fontSize(14).text(`Email: ${cliente.email}`);
-      doc.fontSize(14).text(`Teléfono: ${cliente.phoneNumber}`);
-      doc.moveDown();
+doc.fontSize(16).text(`Número de Factura: ${invoiceNumber}`, { align: 'left' });
+doc.moveDown(0.5);
+doc.fontSize(16).text(`Fecha de la Factura: ${invoiceDate.toDateString()}`, { align: 'left' });
+doc.moveDown(0.5);
+doc.fontSize(16).text(`Fecha de Vencimiento: ${expirationDate.toDateString()}`, { align: 'left' });
+doc.moveDown(2);  // Espacio después de las fechas
 
-      doc.fontSize(16).text(`Servicio: ${service.producto || 'N/A'}`);
-      doc.fontSize(14).text(`Monto a Pagar:`, { continued: true }).font('Helvetica-Bold').text(`${service.price || 0}`);
-      doc.moveDown();
+doc.fontSize(16).text(`Datos del Cliente:`, { align: 'left', underline: true });
+doc.moveDown(0.5);
+doc.fontSize(14).text(`Nombre: ${cliente.name}`, { align: 'left' });
+doc.moveDown(0.3);
+doc.fontSize(14).text(`Email: ${cliente.email}`, { align: 'left' });
+doc.moveDown(0.3);
+doc.fontSize(14).text(`Teléfono: ${cliente.phoneNumber}`, { align: 'left' });
+doc.moveDown(2);  // Espacio después de los datos del cliente
 
-      doc.fontSize(14).text(`Detalles del Servicio: ${service.domains ? service.domains.join(', ') : 'N/A'}`);
-      doc.moveDown();
+doc.fontSize(16).text(`Servicio: ${service.producto || 'N/A'}`, { align: 'left', underline: true });
+doc.moveDown(0.5);
+doc.fontSize(14).text(`Monto a Pagar:`, { align: 'left' })
+  .font('Helvetica-Bold').text(`${service.price || 0}`, { align: 'left' });
+doc.moveDown(2);  // Espacio después del monto a pagar
 
-      doc.fontSize(14).text(`Método de Pago: ${service.paymentMethod || 'N/A'}`);
-      doc.moveDown();
+doc.font('Helvetica').fontSize(14).text(`Detalles del Servicio: ${service.domains ? service.domains.join(', ') : 'N/A'}`, { align: 'left' });
+doc.moveDown(2);  // Espacio después de los detalles del servicio
 
-      // Add bank details
-      doc.fontSize(16).text(`Banco Patagonia:`);
-      doc.fontSize(14).text(`Alias: PAJARO.SABADO.LARGO`);
-      doc.fontSize(14).text(`CBU: 0340040108409895361003`);
-      doc.fontSize(14).text(`Cuenta: CA $  040-409895361-000`);
-      doc.fontSize(14).text(`CUIL: 20224964162`);
-      doc.moveDown();
+doc.fontSize(14).text(`Método de Pago: ${service.paymentMethod || 'N/A'}`, { align: 'left' });
+doc.moveDown(2);  // Espacio después del método de pago
 
-      // Add Mercado Pago details
-      doc.fontSize(16).text(`Mercado Pago:`);
-      doc.fontSize(14).text(`Alias: lionseg.mp`);
-      doc.fontSize(14).text(`CVU: 0000003100041927153583`);
-      doc.fontSize(14).text(`Número: 1125071506 (Jorge Luis Castillo)`);
-      doc.moveDown();
+// Add bank details
+doc.fontSize(16).text(`Banco Patagonia:`, { align: 'left', underline: true });
+doc.moveDown(0.5);
+doc.fontSize(14).text(`Alias: PAJARO.SABADO.LARGO`, { align: 'left' });
+doc.moveDown(0.3);
+doc.fontSize(14).text(`CBU: 0340040108409895361003`, { align: 'left' });
+doc.moveDown(0.3);
+doc.fontSize(14).text(`Cuenta: CA $  040-409895361-000`, { align: 'left' });
+doc.moveDown(0.3);
+doc.fontSize(14).text(`CUIL: 20224964162`, { align: 'left' });
+doc.moveDown(2);  // Espacio después de los detalles del banco
 
-      doc.end();
+// Add Mercado Pago details
+doc.fontSize(16).text(`Mercado Pago:`, { align: 'left', underline: true });
+doc.moveDown(0.5);
+doc.fontSize(14).text(`Alias: lionseg.mp`, { align: 'left' });
+doc.moveDown(0.3);
+doc.fontSize(14).text(`CVU: 0000003100041927153583`, { align: 'left' });
+doc.moveDown(0.3);
+doc.fontSize(14).text(`Número: 1125071506 (Jorge Luis Castillo)`, { align: 'left' });
+doc.moveDown(2);  // Espacio después de los detalles de Mercado Pago
+
+doc.end();
 
       const invoice = {
         fileName,
