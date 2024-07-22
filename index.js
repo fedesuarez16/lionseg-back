@@ -193,26 +193,38 @@ app.post('/api/generar-facturas', async (req, res) => {
       const subTotal = services.reduce((sum, item) => sum + item.price, 0);
       const recargo = subTotal * 0.1;
       const total = subTotal + recargo;
-
       doc.moveDown(2);
 
-      // Add totals
       doc.text(`Sub Total: $${subTotal.toFixed(2)} ARS`, 400, 400, { align: 'right' })
         .text(`Recargo por falta de pago a término: $${recargo.toFixed(2)} ARS`, 400, 415, { align: 'right' })
-        .text(`Total: $${total.toFixed(2)} ARS`, 400, 430, { align: 'right', bold: true });
-
-      // Add payment methods
-      doc.moveDown(2).text(`Métodos de Pago:`, 50, 500)
-        .text(`Banco Patagonia:`, 50, 515)
-        .text(`Alias: PAJARO.SABADO.LARGO`, 50, 530)
-        .text(`CBU: 0340040108409895361003`, 50, 545)
-        .text(`Cuenta: CA $ 040-409895361-000`, 50, 560)
-        .text(`CUIL: 20224964162`, 50, 575)
-        .text(`Mercado Pago:`, 300, 515)
-        .text(`Alias: lionseg.mp`, 300, 530)
-        .text(`CVU: 0000003100041927153583`, 300, 545)
-        .text(`Número: 1125071506 (Jorge Luis Castillo)`, 300, 560);
-
+        .moveDown(1.5) // Add space between recargo and total
+        .text(`Total: $${total.toFixed(2)} ARS`, 400, 450, { align: 'right', bold: true });
+      
+      // Add table for payment methods
+      doc.moveDown(2);
+      const tableTop = doc.y;
+      
+      const itemCodeX = 50;
+      const descriptionX = 200;
+      const unitPriceX = 350;
+      const quantityX = 450;
+      
+      doc.fontSize(10)
+        .fillColor('black')
+        .text('Métodos de Pago:', itemCodeX, tableTop)
+        .text('Banco Patagonia:', itemCodeX, tableTop + 15)
+        .text('Alias: PAJARO.SABADO.LARGO', itemCodeX, tableTop + 30)
+        .text('CBU: 0340040108409895361003', itemCodeX, tableTop + 45)
+        .text('Cuenta: CA $ 040-409895361-000', itemCodeX, tableTop + 60)
+        .text('CUIL: 20224964162', itemCodeX, tableTop + 75);
+      
+      doc.fontSize(10)
+        .fillColor('black')
+        .text('Mercado Pago:', descriptionX, tableTop + 15)
+        .text('Alias: lionseg.mp', descriptionX, tableTop + 30)
+        .text('CVU: 0000003100041927153583', descriptionX, tableTop + 45)
+        .text('Número: 1125071506 (Jorge Luis Castillo)', descriptionX, tableTop + 60);
+      
       doc.end();
 
       const invoice = {
