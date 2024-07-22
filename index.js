@@ -195,10 +195,7 @@ app.post('/api/generar-facturas', async (req, res) => {
       const total = subTotal + recargo;
       doc.moveDown(2);
 
-      doc.text(`Sub Total: $${subTotal.toFixed(2)} ARS`, 400, 400, { align: 'right' })
-        .text(`Recargo por falta de pago a término: $${recargo.toFixed(2)} ARS`, 400, 415, { align: 'right' })
-        .moveDown(1.5) // Add space between recargo and total
-        .text(`Total: $${total.toFixed(2)} ARS`, 400, 450, { align: 'right', bold: true });
+    
       
       // Add table for payment methods
       doc.moveDown(2);
