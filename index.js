@@ -232,9 +232,6 @@ services.forEach((item, index) => {
     .text(`$${item.price.toFixed(2)} ARS`, unitPriceX, y, { align: 'right' });
 });
 
-const subTotal = services.reduce((sum, item) => sum + item.price, 0);
-const recargo = subTotal * 0.1;
-const total = subTotal + recargo;
 
 doc.moveDown(2);
 
