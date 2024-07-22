@@ -202,30 +202,71 @@ app.post('/api/generar-facturas', async (req, res) => {
       
       // Add table for payment methods
       doc.moveDown(2);
-      const tableTop = doc.y;
-      
-      const itemCodeX = 50;
-      const descriptionX = 200;
-      const unitPriceX = 350;
-      const quantityX = 450;
-      
-      doc.fontSize(10)
-        .fillColor('black')
-        .text('Métodos de Pago:', itemCodeX, tableTop)
-        .text('Banco Patagonia:', itemCodeX, tableTop + 15)
-        .text('Alias: PAJARO.SABADO.LARGO', itemCodeX, tableTop + 30)
-        .text('CBU: 0340040108409895361003', itemCodeX, tableTop + 45)
-        .text('Cuenta: CA $ 040-409895361-000', itemCodeX, tableTop + 60)
-        .text('CUIL: 20224964162', itemCodeX, tableTop + 75);
-      
-      doc.fontSize(10)
-        .fillColor('black')
-        .text('Mercado Pago:', descriptionX, tableTop + 15)
-        .text('Alias: lionseg.mp', descriptionX, tableTop + 30)
-        .text('CVU: 0000003100041927153583', descriptionX, tableTop + 45)
-        .text('Número: 1125071506 (Jorge Luis Castillo)', descriptionX, tableTop + 60);
-      
-      doc.end();
+     // Add service details with table structure
+const tableTop = 280;
+const itemCodeX = 50;
+const descriptionX = 50;
+const unitPriceX = 450;
+
+// Add table headers
+doc.fontSize(12).fillColor('black')
+  .text('Descripción', descriptionX, tableTop, { bold: true })
+  .text('Total', unitPriceX, tableTop, { align: 'right', bold: true });
+
+// Draw header background
+doc.rect(itemCodeX, tableTop - 5, unitPriceX - itemCodeX + 100, 20)
+  .fill('#f0f0f0')
+  .stroke();
+
+// Add table rows
+services.forEach((item, index) => {
+  const y = tableTop + 25 + (index * 25);
+  const fillColor = index % 2 === 0 ? '#e6e6e6' : '#cccccc';
+
+  // Draw row background
+  doc.rect(itemCodeX, y - 5, unitPriceX - itemCodeX + 100, 25)
+    .fill(fillColor)
+    .stroke();
+
+  doc.fillColor('black')
+    .text(item.description, descriptionX, y)
+    .text(`$${item.price.toFixed(2)} ARS`, unitPriceX, y, { align: 'right' });
+});
+
+
+doc.moveDown(2);
+
+// Add totals
+const totalStartY = tableTop + 25 * services.length + 40;
+doc.text(`Sub Total: $${subTotal.toFixed(2)} ARS`, unitPriceX, totalStartY, { align: 'right' })
+  .text(`Recargo por falta de pago a término: $${recargo.toFixed(2)} ARS`, unitPriceX, totalStartY + 15, { align: 'right' })
+  .moveDown(1.5) // Add space between recargo and total
+  .text(`Total: $${total.toFixed(2)} ARS`, unitPriceX, totalStartY + 45, { align: 'right', bold: true });
+
+// Add payment methods
+doc.moveDown(2);
+const paymentTableTop = doc.y;
+
+const paymentDescriptionX = 50;
+const paymentAmountX = 300;
+
+doc.fontSize(10)
+  .fillColor('black')
+  .text('Métodos de Pago:', paymentDescriptionX, paymentTableTop)
+  .text('Banco Patagonia:', paymentDescriptionX, paymentTableTop + 15)
+  .text('Alias: PAJARO.SABADO.LARGO', paymentDescriptionX, paymentTableTop + 30)
+  .text('CBU: 0340040108409895361003', paymentDescriptionX, paymentTableTop + 45)
+  .text('Cuenta: CA $ 040-409895361-000', paymentDescriptionX, paymentTableTop + 60)
+  .text('CUIL: 20224964162', paymentDescriptionX, paymentTableTop + 75);
+
+doc.fontSize(10)
+  .fillColor('black')
+  .text('Mercado Pago:', paymentAmountX, paymentTableTop + 15)
+  .text('Alias: lionseg.mp', paymentAmountX, paymentTableTop + 30)
+  .text('CVU: 0000003100041927153583', paymentAmountX, paymentTableTop + 45)
+  .text('Número: 1125071506 (Jorge Luis Castillo)', paymentAmountX, paymentTableTop + 60);
+
+doc.end();
 
       const invoice = {
         fileName,
