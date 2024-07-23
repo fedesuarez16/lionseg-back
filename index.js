@@ -219,7 +219,7 @@ doc.rect(itemCodeX, tableTop - 5, unitPriceX - itemCodeX + 100, 20)
 // Add table rows
 services.forEach((item, index) => {
   const y = tableTop + 25 + (index * 25);
-  const fillColor = index % 2 === 0 ? '#e6e6e6' : '#cccccc';
+  const fillColor = index % 2 === 0 ? '#cccccc' : '#e6e6e6';
 
   // Draw row background
   doc.rect(itemCodeX, y - 5, unitPriceX - itemCodeX + 100, 25)
