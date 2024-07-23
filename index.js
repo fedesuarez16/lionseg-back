@@ -206,10 +206,6 @@ const descriptionX = 50;
 const unitPriceX = 450;
 
 // Add table headers
-// Add table headers
-doc.fontSize(12).fillColor('black')
-  .text('Descripción', descriptionX, tableTop, { bold: true })
-  .text('Total', unitPriceX, tableTop, { align: 'right', bold: true });
 
 // Draw header background
 doc.rect(itemCodeX, tableTop - 5, unitPriceX - itemCodeX + 100, 20)
@@ -231,19 +227,22 @@ services.forEach((item, index) => {
     .text(`$${item.price.toFixed(2)} ARS`, unitPriceX, y, { align: 'right' });
 });
 
+
 doc.moveDown(2);
 
 // Add totals
-const totalStartY = tableTop + 25 * services.length + 50; // Ajuste de 50 para espacio suficiente
+const totalStartY = tableTop + 25 * services.length + 40;
 doc.text(`Sub Total: $${subTotal.toFixed(2)} ARS`, unitPriceX, totalStartY, { align: 'right' })
   .text(`Recargo por falta de pago a término: $${recargo.toFixed(2)} ARS`, unitPriceX, totalStartY + 15, { align: 'right' })
-  .moveDown(1.5) // Añadir espacio entre recargo y total
+  .moveDown(1.5) // Add space between recargo and total
   .text(`Total: $${total.toFixed(2)} ARS`, unitPriceX, totalStartY + 45, { align: 'right', bold: true });
 
-// Calcula el Y inicial para métodos de pago
-const paymentTableTop = totalStartY + 70; // Ajuste para espacio suficiente
+// Add payment methods
+doc.moveDown(2);
+const paymentTableTop = doc.y;
+const paymentDescriptionX = 50;
+const paymentAmountX = 300;
 
-// Agrega los métodos de pago
 doc.fontSize(10)
   .fillColor('black')
   .text('Métodos de Pago:', paymentDescriptionX, paymentTableTop)
@@ -259,7 +258,6 @@ doc.fontSize(10)
   .text('Alias: lionseg.mp', paymentAmountX, paymentTableTop + 30)
   .text('CVU: 0000003100041927153583', paymentAmountX, paymentTableTop + 45)
   .text('Número: 1125071506 (Jorge Luis Castillo)', paymentAmountX, paymentTableTop + 60);
-
 
 doc.end();
 
