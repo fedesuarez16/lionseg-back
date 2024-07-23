@@ -175,124 +175,153 @@ app.post('/api/generar-facturas', async (req, res) => {
 
       doc.moveDown(2);
 
-      // Add service details with table structure
-      const tableTop = 280;
-      const itemCodeX = 50;
-      const descriptionX = 50;
-      const unitPriceX = 450;
-
-      // Add table headers
-      doc.fontSize(12).fillColor('black')
-        .text('Descripción', descriptionX, tableTop, { bold: true })
-        .text('Total', unitPriceX, tableTop, { align: 'right', bold: true });
-
-      // Draw header background
-      doc.rect(itemCodeX, tableTop - 5, unitPriceX - itemCodeX + 100, 20)
-        .fill('#f0f0f0')
-        .stroke();
-
-      // Add table rows
+      // Add service details
       const service = cliente.services.length > 0 ? cliente.services[0] : {};
       const services = [
         { description: service.producto || 'N/A', price: service.price || 0 }
       ];
 
+      doc.text('Descripción', 50, 280, { bold: true })
+        .text('Total', 450, 280, { align: 'right', bold: true });
+
       services.forEach((item, index) => {
-        const y = tableTop + 25 + (index * 25);
-        const fillColor = index % 2 === 0 ? '#e6e6e6' : '#cccccc';
-
-        // Draw row background
-        doc.rect(itemCodeX, y - 5, unitPriceX - itemCodeX + 100, 25)
-          .fill(fillColor)
-          .stroke();
-
-        doc.fillColor('black')
-          .text(item.description, descriptionX, y)
-          .text(`$${item.price.toFixed(2)} ARS`, unitPriceX, y, { align: 'right' });
+        const y = 300 + index * 20;
+        doc.text(item.description, 50, y)
+          .text(`$${item.price.toFixed(2)} ARS`, 450, y, { align: 'right' });
       });
 
       const subTotal = services.reduce((sum, item) => sum + item.price, 0);
       const recargo = subTotal * 0.1;
       const total = subTotal + recargo;
-
       doc.moveDown(2);
 
-      // Add totals
-      const totalStartY = tableTop + 25 * services.length + 40;
-      doc.text(`Sub Total: $${subTotal.toFixed(2)} ARS`, unitPriceX, totalStartY, { align: 'right' })
-        .text(`Recargo por falta de pago a término: $${recargo.toFixed(2)} ARS`, unitPriceX, totalStartY + 15, { align: 'right' })
-        .moveDown(1.5) // Add space between recargo and total
-        .text(`Total: $${total.toFixed(2)} ARS`, unitPriceX, totalStartY + 45, { align: 'right', bold: true });
-
-      // Add payment methods
+    
+      
+      // Add table for payment methods
       doc.moveDown(2);
-      const paymentTableTop = doc.y;
+     // Add service details with table structure
+const tableTop = 280;
+const itemCodeX = 50;
+const descriptionX = 50;
+const unitPriceX = 450;
 
-      const paymentDescriptionX = 50;
-      const paymentAmountX = 300;
+// Add table headers
 
-      doc.fontSize(10)
-        .fillColor('black')
-        .text('Métodos de Pago:', paymentDescriptionX, paymentTableTop)
-        .text('Banco Patagonia:', paymentDescriptionX, paymentTableTop + 15)
-        .text('Alias: PAJARO.SABADO.LARGO', paymentDescriptionX, paymentTableTop + 30)
-        .text('CBU: 0340040108409895361003', paymentDescriptionX, paymentTableTop + 45)
-        .text('Cuenta: CA $ 040-409895361-000', paymentDescriptionX, paymentTableTop + 60)
-        .text('CUIL: 20224964162', paymentDescriptionX, paymentTableTop + 75);
+// Draw header background
+doc.rect(itemCodeX, tableTop - 5, unitPriceX - itemCodeX + 100, 20)
+  .fill('#f0f0f0')
+  .stroke();
 
-      doc.fontSize(10)
-        .fillColor('black')
-        .text('Mercado Pago:', paymentAmountX, paymentTableTop + 15)
-        .text('Alias: lionseg.mp', paymentAmountX, paymentTableTop + 30)
-        .text('CVU: 0000003100041927153583', paymentAmountX, paymentTableTop + 45)
-        .text('Número: 1125071506 (Jorge Luis Castillo)', paymentAmountX, paymentTableTop + 60);
+// Add table rows
+services.forEach((item, index) => {
+  const y = tableTop + 25 + (index * 25);
+  const fillColor = index % 2 === 0 ? '#e6e6e6' : '#cccccc';
 
-      doc.end();
+  // Draw row background
+  doc.rect(itemCodeX, y - 5, unitPriceX - itemCodeX + 100, 25)
+    .fill(fillColor)
+    .stroke();
 
-      // Add invoice link to the client's invoiceLinks array
-      const invoiceLink = `/facturas/${fileName}`;
-      cliente.invoiceLinks.push(invoiceLink);
-      await cliente.save();
+  doc.fillColor('black')
+    .text(item.description, descriptionX, y)
+    .text(`$${item.price.toFixed(2)} ARS`, unitPriceX, y, { align: 'right' });
+});
 
-      // Save the invoice link to the array
-      enlacesFacturas.push(invoiceLink);
 
-      // Enviar el PDF por correo electrónico al cliente
-      const mailOptions = {
-        from: 'federicojavier.suarez16@gmail.com',
-        to: cliente.email,
-        subject: 'Factura Generada',
-        text: `Estimado ${cliente.name},\n\nSe ha generado una nueva factura para usted. Puede descargarla usando el siguiente enlace:\n\n${req.protocol}://${req.get('host')}${invoiceLink}\n\nSaludos,\nLionseg`,
-        attachments: [
-          {
-            filename: fileName,
-            path: `public/facturas/${fileName}`,
-            contentType: 'application/pdf',
-          },
-        ],
+doc.moveDown(2);
+
+// Add totals
+const totalStartY = tableTop + 25 * services.length + 40;
+doc.text(`Sub Total: $${subTotal.toFixed(2)} ARS`, unitPriceX, totalStartY, { align: 'right' })
+  .text(`Recargo por falta de pago a término: $${recargo.toFixed(2)} ARS`, unitPriceX, totalStartY + 15, { align: 'right' })
+  .moveDown(1.5) // Add space between recargo and total
+  .text(`Total: $${total.toFixed(2)} ARS`, unitPriceX, totalStartY + 45, { align: 'right', bold: true });
+
+// Add payment methods
+doc.moveDown(2);
+const paymentTableTop = doc.y;
+
+const paymentDescriptionX = 50;
+const paymentAmountX = 300;
+
+doc.fontSize(10)
+  .fillColor('black')
+  .text('Métodos de Pago:', paymentDescriptionX, paymentTableTop)
+  .text('Banco Patagonia:', paymentDescriptionX, paymentTableTop + 15)
+  .text('Alias: PAJARO.SABADO.LARGO', paymentDescriptionX, paymentTableTop + 30)
+  .text('CBU: 0340040108409895361003', paymentDescriptionX, paymentTableTop + 45)
+  .text('Cuenta: CA $ 040-409895361-000', paymentDescriptionX, paymentTableTop + 60)
+  .text('CUIL: 20224964162', paymentDescriptionX, paymentTableTop + 75);
+
+doc.fontSize(10)
+  .fillColor('black')
+  .text('Mercado Pago:', paymentAmountX, paymentTableTop + 15)
+  .text('Alias: lionseg.mp', paymentAmountX, paymentTableTop + 30)
+  .text('CVU: 0000003100041927153583', paymentAmountX, paymentTableTop + 45)
+  .text('Número: 1125071506 (Jorge Luis Castillo)', paymentAmountX, paymentTableTop + 60);
+
+doc.end();
+
+      const invoice = {
+        fileName,
+        state: 'pending',
+        registrationDate: invoiceDate,
+        expirationDate,
+        invoiceNumber,
+        total: service.price || 0,
       };
 
-      await transporter.sendMail(mailOptions);
+      cliente.invoiceLinks.push(invoice);
+      await cliente.save();
+
+      console.log(`Factura generada para ${cliente.name}`);
+
+      const facturaLink = `https://localhost:3000/facturas/${fileName}`; // Cambiar a HTTPS si es necesario
+      enlacesFacturas.push(facturaLink);
+
+      await transporter.sendMail({
+        from: 'coflipweb@gmail.com',
+        to: cliente.email,
+        subject: 'Factura',
+        text: 'Se adjunta la factura.',
+        attachments: [{ filename: fileName, path: `./public/facturas/${fileName}` }],
+      });
     }
 
-    res.json({ message: 'Facturas generadas y correos electrónicos enviados', enlacesFacturas });
+    console.log('Facturas generadas con éxito');
+    res.status(200).json({ message: 'Facturas generadas con éxito', enlacesFacturas });
   } catch (error) {
-    console.error('Error al generar facturas:', error);
-    res.status(500).json({ error: 'Error al generar facturas' });
+    console.error('Error al generar las facturas:', error);
+    res.status(500).json({ error });
   }
 });
 
-// Crear una tarea cron para generar y enviar facturas automáticamente el primer día de cada mes a las 10:00 AM
-cron.schedule('0 10 1 * *', async () => {
+
+// Define the route to update the state of an invoice link
+app.put('/api/clientes/:clienteId/invoiceLinks/:invoiceLinkId/state', async (req, res) => {
+  const { clienteId, invoiceLinkId } = req.params;
+  const { state } = req.body;
+
   try {
-    await fetch('http://localhost:3000/api/generar-facturas', { method: 'POST' });
-    console.log('Facturas generadas y correos electrónicos enviados automáticamente');
+    const cliente = await Cliente.findById(clienteId);
+    if (!cliente) {
+      return res.status(404).json({ error: 'Client not found' });
+    }
+
+    const invoiceLink = cliente.invoiceLinks.id(invoiceLinkId);
+    if (!invoiceLink) {
+      return res.status(404).json({ error: 'Invoice link not found' });
+    }
+
+    invoiceLink.state = state;
+    await cliente.save();
+
+    res.status(200).json(invoiceLink);
   } catch (error) {
-    console.error('Error en la tarea cron de generación de facturas:', error);
+    res.status(500).json({ error: 'Could not update invoice link state' });
   }
 });
 
-// Start the server
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
