@@ -234,7 +234,7 @@ doc.moveDown(2);
 const totalStartY = tableTop + 25 * services.length + 40;
 doc.text(`Sub Total: $${subTotal.toFixed(2)} ARS`, unitPriceX, totalStartY, { align: 'right' })
   .text(`Recargo por falta de pago a término: $${recargo.toFixed(2)} ARS`, unitPriceX, totalStartY + 15, { align: 'right' })
-  .moveDown(1.5) // Add space between recargo and total
+  .moveDown(4) // Add space between recargo and total
   .text(`Total: $${total.toFixed(2)} ARS`, unitPriceX, totalStartY + 45, { align: 'right', bold: true });
 
 // Add payment methods
