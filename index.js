@@ -200,64 +200,64 @@ app.post('/api/generar-facturas', async (req, res) => {
       // Add table for payment methods
       doc.moveDown(2);
      // Add service details with table structure
+// Add service details with table structure
 const tableTop = 280;
-const itemCodeX = 50;
 const descriptionX = 50;
 const unitPriceX = 450;
 
 // Add table headers
+doc.fontSize(12).fillColor('black')
+  .text('Descripción', descriptionX, tableTop, { bold: true })
+  .text('Total', unitPriceX, tableTop, { align: 'right', bold: true });
 
 // Draw header background
-doc.rect(itemCodeX, tableTop - 5, unitPriceX - itemCodeX + 100, 20)
+doc.rect(descriptionX, tableTop - 15, unitPriceX - descriptionX + 50, 20)
   .fill('#f0f0f0')
   .stroke();
 
-// Add table rows
 services.forEach((item, index) => {
   const y = tableTop + 25 + (index * 25);
-  const fillColor = index % 2 === 0 ? '#e6e6e6' : '#cccccc';
+  const fillColor = index % 2 === 0 ? '#e6e6e6' : '#ffffff';
 
   // Draw row background
-  doc.rect(itemCodeX, y - 5, unitPriceX - itemCodeX + 100, 25)
+  doc.rect(descriptionX, y - 10, unitPriceX - descriptionX + 50, 25)
     .fill(fillColor)
     .stroke();
 
   doc.fillColor('black')
-    .text(item.description, descriptionX, y)
-    .text(`$${item.price.toFixed(2)} ARS`, unitPriceX, y, { align: 'right' });
+    .text(item.description, descriptionX + 5, y)
+    .text(`$${item.price.toFixed(2)} ARS`, unitPriceX - 50, y, { align: 'right' });
 });
-
 
 doc.moveDown(2);
 
 // Add totals
-const totalStartY = tableTop + 25 * services.length + 40;
-doc.text(`Sub Total: $${subTotal.toFixed(2)} ARS`, unitPriceX, totalStartY, { align: 'right' })
-  // .text(`Recargo por falta de pago a término: $${recargo.toFixed(2)} ARS`, unitPriceX, totalStartY + 15, { align: 'right' })
-  .moveDown(4) // Add space between recargo and total
-  .text(`Total: $${total.toFixed(2)} ARS`, unitPriceX, totalStartY + 45, { align: 'right', bold: true });
+const totalStartY = tableTop + 25 * services.length + 50; // Ajuste de 50 para espacio suficiente
+doc.text(`Sub Total: $${subTotal.toFixed(2)} ARS`, unitPriceX - 50, totalStartY, { align: 'right' })
+  .text(`Recargo por falta de pago a término: $${recargo.toFixed(2)} ARS`, unitPriceX - 50, totalStartY + 15, { align: 'right' })
+  .moveDown(1.5) // Añadir espacio entre recargo y total
+  .text(`Total: $${total.toFixed(2)} ARS`, unitPriceX - 50, totalStartY + 45, { align: 'right', bold: true });
 
-// Add payment methods
-doc.moveDown(2);
-const paymentTableTop = doc.y;
-const paymentDescriptionX = 50;
-const paymentAmountX = 300;
+// Calcula el Y inicial para métodos de pago
+const paymentTableTop = totalStartY + 70; // Ajuste para espacio suficiente
+
+// Agrega los métodos de pago
+doc.fontSize(10)
+  .fillColor('black')
+  .text('Métodos de Pago:', descriptionX, paymentTableTop)
+  .text('Banco Patagonia:', descriptionX, paymentTableTop + 15)
+  .text('Alias: PAJARO.SABADO.LARGO', descriptionX, paymentTableTop + 30)
+  .text('CBU: 0340040108409895361003', descriptionX, paymentTableTop + 45)
+  .text('Cuenta: CA $ 040-409895361-000', descriptionX, paymentTableTop + 60)
+  .text('CUIL: 20224964162', descriptionX, paymentTableTop + 75);
 
 doc.fontSize(10)
   .fillColor('black')
-  .text('Métodos de Pago:', paymentDescriptionX, paymentTableTop)
-  .text('Banco Patagonia:', paymentDescriptionX, paymentTableTop + 15)
-  .text('Alias: PAJARO.SABADO.LARGO', paymentDescriptionX, paymentTableTop + 30)
-  .text('CBU: 0340040108409895361003', paymentDescriptionX, paymentTableTop + 45)
-  .text('Cuenta: CA $ 040-409895361-000', paymentDescriptionX, paymentTableTop + 60)
-  .text('CUIL: 20224964162', paymentDescriptionX, paymentTableTop + 75);
+  .text('Mercado Pago:', unitPriceX - 200, paymentTableTop + 15)
+  .text('Alias: lionseg.mp', unitPriceX - 200, paymentTableTop + 30)
+  .text('CVU: 0000003100041927153583', unitPriceX - 200, paymentTableTop + 45)
+  .text('Número: 1125071506 (Jorge Luis Castillo)', unitPriceX - 200, paymentTableTop + 60);
 
-doc.fontSize(10)
-  .fillColor('black')
-  .text('Mercado Pago:', paymentAmountX, paymentTableTop + 15)
-  .text('Alias: lionseg.mp', paymentAmountX, paymentTableTop + 30)
-  .text('CVU: 0000003100041927153583', paymentAmountX, paymentTableTop + 45)
-  .text('Número: 1125071506 (Jorge Luis Castillo)', paymentAmountX, paymentTableTop + 60);
 
 doc.end();
 
