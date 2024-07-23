@@ -206,6 +206,10 @@ const descriptionX = 50;
 const unitPriceX = 450;
 
 // Add table headers
+// Add table headers
+doc.fontSize(12).fillColor('black')
+  .text('Descripción', descriptionX, tableTop, { bold: true })
+  .text('Total', unitPriceX, tableTop, { align: 'right', bold: true });
 
 // Draw header background
 doc.rect(itemCodeX, tableTop - 5, unitPriceX - itemCodeX + 100, 20)
@@ -227,10 +231,9 @@ services.forEach((item, index) => {
     .text(`$${item.price.toFixed(2)} ARS`, unitPriceX, y, { align: 'right' });
 });
 
-
 doc.moveDown(2);
 
-// Agrega los totales
+// Add totals
 const totalStartY = tableTop + 25 * services.length + 50; // Ajuste de 50 para espacio suficiente
 doc.text(`Sub Total: $${subTotal.toFixed(2)} ARS`, unitPriceX, totalStartY, { align: 'right' })
   .text(`Recargo por falta de pago a término: $${recargo.toFixed(2)} ARS`, unitPriceX, totalStartY + 15, { align: 'right' })
