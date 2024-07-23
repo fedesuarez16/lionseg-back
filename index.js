@@ -230,20 +230,17 @@ services.forEach((item, index) => {
 
 doc.moveDown(2);
 
-// Add totals
-const totalStartY = tableTop + 25 * services.length + 40;
+// Agrega los totales
+const totalStartY = tableTop + 25 * services.length + 50; // Ajuste de 50 para espacio suficiente
 doc.text(`Sub Total: $${subTotal.toFixed(2)} ARS`, unitPriceX, totalStartY, { align: 'right' })
   .text(`Recargo por falta de pago a término: $${recargo.toFixed(2)} ARS`, unitPriceX, totalStartY + 15, { align: 'right' })
-  .moveDown(1.5) // Add space between recargo and total
+  .moveDown(1.5) // Añadir espacio entre recargo y total
   .text(`Total: $${total.toFixed(2)} ARS`, unitPriceX, totalStartY + 45, { align: 'right', bold: true });
 
-// Add payment methods
-doc.moveDown(2);
-const paymentTableTop = doc.y;
+// Calcula el Y inicial para métodos de pago
+const paymentTableTop = totalStartY + 70; // Ajuste para espacio suficiente
 
-const paymentDescriptionX = 50;
-const paymentAmountX = 300;
-
+// Agrega los métodos de pago
 doc.fontSize(10)
   .fillColor('black')
   .text('Métodos de Pago:', paymentDescriptionX, paymentTableTop)
@@ -259,6 +256,7 @@ doc.fontSize(10)
   .text('Alias: lionseg.mp', paymentAmountX, paymentTableTop + 30)
   .text('CVU: 0000003100041927153583', paymentAmountX, paymentTableTop + 45)
   .text('Número: 1125071506 (Jorge Luis Castillo)', paymentAmountX, paymentTableTop + 60);
+
 
 doc.end();
 
