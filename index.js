@@ -212,7 +212,7 @@ doc.rect(itemCodeX, tableTop - 5, unitPriceX - itemCodeX + 100, 20)
   .fill('#f0f0f0')
   .stroke();
 
-  doc.fontSize(12).fillColor('black')
+  doc.fontSize(10).fillColor('black')
   .text('Descripción', descriptionX, tableTop, { bold: true })
   .text('Total', unitPriceX, tableTop, { align: 'right', bold: true });
 
