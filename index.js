@@ -331,7 +331,7 @@ app.listen(port, () => {
 
 app.post('/api/clientes/:id/generar-factura', async (req, res) => {
   const clientId = req.params.id;
-  const { monto, destinatario, fechaFactura, fechaVencimiento, descripcion } = req.body;
+  const { monto, fechaFactura, fechaVencimiento, descripcion } = req.body;
 
   try {
     console.log('Inicio del proceso de generación de factura');
