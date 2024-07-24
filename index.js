@@ -353,6 +353,8 @@ app.post('/api/clientes/:id/generar-factura', async (req, res) => {
     const logoPath = 'C:\\Users\\fedes\\clients-panel\\server\\logo.png'; // Replace with the path to your logo
     if (fs.existsSync(logoPath)) {
       doc.image(logoPath, 50, 45, { width: 50 });
+    } else {
+      console.log('Logo not found at path:', logoPath);
     }
 
     // Add invoice title
@@ -468,6 +470,6 @@ app.post('/api/clientes/:id/generar-factura', async (req, res) => {
     });
   } catch (error) {
     console.log('Error al generar la factura:', error);
-    res.status(500).send({ error: 'Error al generar la factura' });
+    res.status(500).send({ error: 'Error al generar la factura', details: error.message });
   }
 });
