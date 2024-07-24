@@ -330,6 +330,7 @@ app.listen(port, () => {
 });
 
 app.post('/api/clientes/:id/generar-factura', async (req, res) => {
+  console.log('Ruta /generar-factura llamada');
   const clientId = req.params.id;
   const { monto, fechaFactura, fechaVencimiento, descripcion } = req.body;
 
