@@ -335,7 +335,6 @@ app.post('/api/clientes/:id/generar-factura', async (req, res) => {
 
   try {
     console.log('Inicio del proceso de generación de factura');
-    
     const cliente = await Cliente.findById(clientId);
     if (!cliente) {
       console.log('Cliente no encontrado');
@@ -356,18 +355,127 @@ app.post('/api/clientes/:id/generar-factura', async (req, res) => {
     doc.pipe(fs.createWriteStream(filePath));
     console.log('Archivo PDF creado en:', filePath);
 
-    // Simplificar la creación del documento PDF
-    doc.text('Factura');
-    doc.text(`Cliente: ${cliente.name}`);
-    doc.text(`Monto: ${monto}`);
+    // Add logo
+    const logoPath = 'C:\\Users\\fedes\\clients-panel\\server\\logo.png';
+    if (fs.existsSync(logoPath)) {
+      doc.image(logoPath, 50, 45, { width: 50 });
+    } else {
+      console.log('Logo no encontrado en la ruta:', logoPath);
+    }
+
+    // Add invoice title
+    doc.fontSize(20).text('Factura', 110, 57);
+
+    // Add invoice metadata
+    const invoiceDate = new Date(fechaFactura);
+    const expirationDate = new Date(fechaVencimiento);
+    const invoiceNumber = `INV-${Date.now()}`;
+
+    doc.fontSize(10)
+      .text(`Fecha de la Factura: ${invoiceDate.toLocaleDateString()}`, 200, 65, { align: 'right' })
+      .text(`Fecha de Vencimiento: ${expirationDate.toLocaleDateString()}`, 200, 80, { align: 'right' })
+      .text(`Número de Factura: ${invoiceNumber}`, 200, 95, { align: 'right' });
+
+    doc.moveDown(2);
+
+    // Add client details
+    doc.text(`Facturado a:`, 50, 160)
+      .text(`${cliente.name}`, 50, 175)
+      .text(`${cliente.address || 'Dirección no proporcionada'}`, 50, 190)
+      .text(`${cliente.city || ''}, ${cliente.state || ''}, ${cliente.zip || ''}`, 50, 205)
+      .text(`${cliente.country || 'País no proporcionada'}`, 50, 220);
+
+    doc.moveDown(2);
+
+    // Add service details
+    const services = [{ description: descripcion, price: parseFloat(monto) }];
+
+    doc.text('Descripción', 50, 280, { bold: true })
+      .text('Total', 450, 280, { align: 'right', bold: true });
+
+    services.forEach((item, index) => {
+      const y = 300 + index * 20;
+      doc.text(item.description, 50, y)
+        .text(`$${item.price.toFixed(2)} ARS`, 450, y, { align: 'right' });
+    });
+
+    const subTotal = services.reduce((sum, item) => sum + item.price, 0);
+    const total = subTotal;
+    doc.moveDown(2);
+
+    // Add totals
+    const totalStartY = 300 + 20 * services.length + 40;
+    doc.text(`Sub Total: $${subTotal.toFixed(2)} ARS`, 450, totalStartY, { align: 'right' })
+      .moveDown(4)
+      .text(`Total: $${total.toFixed(2)} ARS`, 450, totalStartY + 45, { align: 'right', bold: true });
+
+    // Add payment methods
+    doc.moveDown(2);
+    const paymentTableTop = doc.y;
+    doc.fontSize(10)
+      .fillColor('black')
+      .text('Métodos de Pago:', 50, paymentTableTop)
+      .text('Banco Patagonia:', 50, paymentTableTop + 15)
+      .text('Alias: PAJARO.SABADO.LARGO', 50, paymentTableTop + 30)
+      .text('CBU: 0340040108409895361003', 50, paymentTableTop + 45)
+      .text('Cuenta: CA $ 040-409895361-000', 50, paymentTableTop + 60)
+      .text('CUIL: 20224964162', 50, paymentTableTop + 75);
+
+    doc.fontSize(10)
+      .fillColor('black')
+      .text('Mercado Pago:', 300, paymentTableTop + 15)
+      .text('Alias: lionseg.mp', 300, paymentTableTop + 30)
+      .text('CVU: 0000003100041927153583', 300, paymentTableTop + 45)
+      .text('Número: 1125071506 (Jorge Luis Castillo)', 300, paymentTableTop + 60);
+
     doc.end();
     console.log('PDF document ended');
 
-    cliente.invoiceLinks.push({ fileName });
+    const invoice = {
+      fileName,
+      state: 'pending',
+      registrationDate: invoiceDate,
+      expirationDate,
+      invoiceNumber,
+      total: parseFloat(monto),
+    };
+
+    cliente.invoiceLinks.push(invoice);
     await cliente.save();
     console.log('Factura guardada en el cliente');
 
-    res.send({ message: 'Factura generada', facturaLink: `/public/facturas/${fileName}` });
+    // Send email with invoice attachment
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: 'facturacion@lionseg.com',
+        pass: 'dcwnwdyglpwaeclp',
+      },
+    });
+
+    const mailOptions = {
+      from: 'facturacion@lionseg.com',
+      to: cliente.email,
+      subject: `Factura ${invoiceNumber}`,
+      text: `Adjunto encontrará la factura ${invoiceNumber}.`,
+      attachments: [
+        {
+          filename: fileName,
+          path: filePath,
+          contentType: 'application/pdf',
+        },
+      ],
+    };
+
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.log('Error al enviar el correo:', error);
+        return res.status(500).send({ error: 'Error al enviar el correo' });
+      } else {
+        console.log('Correo enviado: ' + info.response);
+        return res.send({ message: 'Factura generada y enviada por correo', facturaLink: `/public/facturas/${fileName}` });
+      }
+    });
   } catch (error) {
     console.log('Error al generar la factura:', error);
     res.status(500).send({ error: 'Error al generar la factura', details: error.message });
