@@ -222,7 +222,7 @@ services.forEach((item, index) => {
   const fillColor = index % 2 === 0 ? '#cccccc' : '#e6e6e6';
 
   // Draw row background
-  doc.rect(itemCodeX, y - 5, unitPriceX - itemCodeX + 100, 25)
+  doc.rect(itemCodeX, y - 5, unitPriceX - itemCodeX + 100, 25)                                                                                
     .fill(fillColor)
     .stroke();
 
@@ -328,3 +328,91 @@ app.put('/api/clientes/:clienteId/invoiceLinks/:invoiceLinkId/state', async (req
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
+
+// Generate invoice for a single client by ID with parameters
+app.post('/api/clientes/:id/generar-factura', async (req, res) => {
+  const clientId = req.params.id;
+  const { monto, destinatario, fechaFactura, fechaVencimiento, descripcion } = req.body;
+
+  try {
+    const cliente = await Cliente.findById(clientId);
+    if (!cliente) {
+      return res.status(404).json({ error: 'Client not found' });
+    }
+
+    const doc = new PDFDocument();
+    const fileName = `factura_${cliente._id}_${Date.now()}.pdf`;
+
+    const dirFacturas = 'public/facturas';
+    if (!fs.existsSync(dirFacturas)) {
+      const dirPublic = 'public';
+      if (!fs.existsSync(dirPublic)) {
+        fs.mkdirSync(dirPublic);
+      }
+      fs.mkdirSync(dirFacturas);
+    }
+
+    doc.pipe(fs.createWriteStream(`public/facturas/${fileName}`));
+
+    // Add logo
+    const logoPath = 'C:\\Users\\fedes\\clients-panel\\server\\logo.png'; // Replace with the path to your logo
+    if (fs.existsSync(logoPath)) {
+      doc.image(logoPath, 50, 45, { width: 50 });
+    }
+
+    // Add invoice title
+    doc.fontSize(20).text('Factura', 110, 57);
+
+    // Add invoice metadata
+    doc.fontSize(10)
+      .text(`Fecha de la Factura: ${new Date(fechaFactura).toLocaleDateString()}`, 200, 65, { align: 'right' })
+      .text(`Fecha de Vencimiento: ${new Date(fechaVencimiento).toLocaleDateString()}`, 200, 80, { align: 'right' })
+      .text(`Número de Factura: ${`INV-${Date.now()}`}`, 200, 95, { align: 'right' });
+
+    doc.moveDown(2);
+
+    // Add client details
+    doc.text(`Facturado a:`, 50, 160)
+      .text(destinatario, 50, 175)
+      .moveDown(2);
+
+    // Add service details
+    doc.text('Descripción', 50, 280, { bold: true })
+      .text('Total', 450, 280, { align: 'right', bold: true });
+
+    doc.text(descripcion, 50, 300)
+      .text(`$${monto.toFixed(2)} ARS`, 450, 300, { align: 'right' });
+
+    doc.moveDown(2);
+
+    const subTotal = monto;
+    const total = subTotal;
+
+    // Add totals
+    const totalStartY = 340;
+    doc.text(`Sub Total: $${subTotal.toFixed(2)} ARS`, 450, totalStartY, { align: 'right' })
+      .moveDown(2)
+      .text(`Total: $${total.toFixed(2)} ARS`, 450, totalStartY + 30, { align: 'right', bold: true });
+
+    doc.end();
+
+    const invoice = {
+      fileName,
+      state: 'pending',
+      registrationDate: new Date(fechaFactura),
+      expirationDate: new Date(fechaVencimiento),
+      invoiceNumber: `INV-${Date.now()}`,
+      total: monto,
+    };
+
+    cliente.invoiceLinks.push(invoice);
+    await cliente.save();
+
+    console.log(`Factura generada para ${cliente.name}`);
+    res.status(200).json({ message: 'Factura generada con éxito', facturaLink: `https://localhost:3000/facturas/${fileName}` });
+  } catch (error) {
+    console.error('Error al generar la factura:', error);
+    res.status(500).json({ error });
+  }
+});
+
