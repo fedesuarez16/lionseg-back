@@ -375,7 +375,7 @@ app.post('/api/clientes/:id/generar-factura', async (req, res) => {
       .text(`${cliente.name}`, 50, 175)
       .text(`${cliente.address || 'Dirección no proporcionada'}`, 50, 190)
       .text(`${cliente.city || ''}, ${cliente.state || ''}, ${cliente.zip || ''}`, 50, 205)
-      .text(`${cliente.country || 'País no proporcionado'}`, 50, 220);
+      .text(`${cliente.country || 'País no proporcionada'}`, 50, 220);
 
     doc.moveDown(2);
 
