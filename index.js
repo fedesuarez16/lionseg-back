@@ -334,27 +334,33 @@ app.post('/api/clientes/:id/generar-factura', async (req, res) => {
   const { monto, destinatario, fechaFactura, fechaVencimiento, descripcion } = req.body;
 
   try {
+    console.log('Inicio del proceso de generación de factura');
     const cliente = await Cliente.findById(clientId);
     if (!cliente) {
+      console.log('Cliente no encontrado');
       return res.status(404).json({ error: 'Client not found' });
     }
+    console.log('Cliente encontrado:', cliente);
 
     const doc = new PDFDocument();
     const fileName = `factura_${cliente._id}_${Date.now()}.pdf`;
     const dirFacturas = 'public/facturas';
 
     if (!fs.existsSync(dirFacturas)) {
+      console.log('Directorio facturas no existe, creando...');
       fs.mkdirSync(dirFacturas, { recursive: true });
     }
 
-    doc.pipe(fs.createWriteStream(`public/facturas/${fileName}`));
+    const filePath = `public/facturas/${fileName}`;
+    doc.pipe(fs.createWriteStream(filePath));
+    console.log('Archivo PDF creado en:', filePath);
 
     // Add logo
-    const logoPath = 'C:\\Users\\fedes\\clients-panel\\server\\logo.png'; // Replace with the path to your logo
+    const logoPath = 'C:\\Users\\fedes\\clients-panel\\server\\logo.png';
     if (fs.existsSync(logoPath)) {
       doc.image(logoPath, 50, 45, { width: 50 });
     } else {
-      console.log('Logo not found at path:', logoPath);
+      console.log('Logo no encontrado en la ruta:', logoPath);
     }
 
     // Add invoice title
@@ -423,6 +429,7 @@ app.post('/api/clientes/:id/generar-factura', async (req, res) => {
       .text('Número: 1125071506 (Jorge Luis Castillo)', 300, paymentTableTop + 60);
 
     doc.end();
+    console.log('PDF document ended');
 
     const invoice = {
       fileName,
@@ -435,6 +442,7 @@ app.post('/api/clientes/:id/generar-factura', async (req, res) => {
 
     cliente.invoiceLinks.push(invoice);
     await cliente.save();
+    console.log('Factura guardada en el cliente');
 
     // Send email with invoice attachment
     const transporter = nodemailer.createTransport({
@@ -453,7 +461,7 @@ app.post('/api/clientes/:id/generar-factura', async (req, res) => {
       attachments: [
         {
           filename: fileName,
-          path: `public/facturas/${fileName}`,
+          path: filePath,
           contentType: 'application/pdf',
         },
       ],
