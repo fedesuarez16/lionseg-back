@@ -461,7 +461,7 @@ const sendInvoiceEmail = async (cliente, invoiceData, filePath) => {
 
 
 
-app.post('/api/clientes/:id/generar-factura', async (req, res) => {
+app.post('/api/clientes/:id/generar', async (req, res) => {
   const clientId = req.params.id;
   const invoiceData = req.body;
 
