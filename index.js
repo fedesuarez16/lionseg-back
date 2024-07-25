@@ -329,114 +329,48 @@ app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
 
+
+
 app.post('/api/clientes/:id/generar-factura', async (req, res) => {
-  console.log('Ruta /generar-factura llamada');
   const clientId = req.params.id;
-  const { monto, fechaFactura, fechaVencimiento, descripcion } = req.body;
+  const { monto, destinatario, fechaFactura, fechaVencimiento, descripcion } = req.body;
 
   try {
     console.log('Inicio del proceso de generación de factura');
     const cliente = await Cliente.findById(clientId);
     if (!cliente) {
       console.log('Cliente no encontrado');
-      return res.status(404).json({ error: 'Cliente no encontrado' });
+      return res.status(404).json({ error: 'Client not found' });
     }
     console.log('Cliente encontrado:', cliente);
 
+    // Generar el número de factura único
+    const invoiceNumber = Date.now();
+    console.log('Número de factura generado:', invoiceNumber);
+
     const doc = new PDFDocument();
-    const fileName = `factura_${cliente._id}_${Date.now()}.pdf`;
-    const dirFacturas = 'public/facturas';
+    const fileName = `factura_${invoiceNumber}.pdf`;
+    const filePath = path.join(__dirname, 'public', 'facturas', fileName);
 
-    if (!fs.existsSync(dirFacturas)) {
-      console.log('Directorio facturas no existe, creando...');
-      fs.mkdirSync(dirFacturas, { recursive: true });
-    }
-
-    const filePath = `public/facturas/${fileName}`;
     doc.pipe(fs.createWriteStream(filePath));
-    console.log('Archivo PDF creado en:', filePath);
 
-    // Add logo
-    const logoPath = 'C:\\Users\\fedes\\clients-panel\\server\\logo.png';
-    if (fs.existsSync(logoPath)) {
-      doc.image(logoPath, 50, 45, { width: 50 });
-    } else {
-      console.log('Logo no encontrado en la ruta:', logoPath);
-    }
+    // Añadir contenido a la factura
+    doc.fontSize(25).text('Factura', 50, 50);
+    doc.fontSize(12).text(`Fecha: ${fechaFactura}`, 50, 100);
+    doc.text(`Vencimiento: ${fechaVencimiento}`, 50, 120);
+    doc.text(`Monto: ${monto}`, 50, 140);
+    doc.text(`Descripción: ${descripcion}`, 50, 160);
 
-    // Add invoice title
-    doc.fontSize(20).text('Factura', 110, 57);
-
-    // Add invoice metadata
-    const invoiceDate = new Date(fechaFactura);
-    const expirationDate = new Date(fechaVencimiento);
-    const invoiceNumber = `INV-${Date.now()}`;
-
-    doc.fontSize(10)
-      .text(`Fecha de la Factura: ${invoiceDate.toLocaleDateString()}`, 200, 65, { align: 'right' })
-      .text(`Fecha de Vencimiento: ${expirationDate.toLocaleDateString()}`, 200, 80, { align: 'right' })
-      .text(`Número de Factura: ${invoiceNumber}`, 200, 95, { align: 'right' });
-
-    doc.moveDown(2);
-
-    // Add client details
-    doc.text(`Facturado a:`, 50, 160)
-      .text(`${cliente.name}`, 50, 175)
-      .text(`${cliente.address || 'Dirección no proporcionada'}`, 50, 190)
-      .text(`${cliente.city || ''}, ${cliente.state || ''}, ${cliente.zip || ''}`, 50, 205)
-      .text(`${cliente.country || 'País no proporcionado'}`, 50, 220);
-
-    doc.moveDown(2);
-
-    // Add service details
-    const services = [{ description: descripcion, price: parseFloat(monto) }];
-
-    doc.text('Descripción', 50, 280, { bold: true })
-      .text('Total', 450, 280, { align: 'right', bold: true });
-
-    services.forEach((item, index) => {
-      const y = 300 + index * 20;
-      doc.text(item.description, 50, y)
-        .text(`$${item.price.toFixed(2)} ARS`, 450, y, { align: 'right' });
-    });
-
-    const subTotal = services.reduce((sum, item) => sum + item.price, 0);
-    const total = subTotal;
-    doc.moveDown(2);
-
-    // Add totals
-    const totalStartY = 300 + 20 * services.length + 40;
-    doc.text(`Sub Total: $${subTotal.toFixed(2)} ARS`, 450, totalStartY, { align: 'right' })
-      .moveDown(4)
-      .text(`Total: $${total.toFixed(2)} ARS`, 450, totalStartY + 45, { align: 'right', bold: true });
-
-    // Add payment methods
-    doc.moveDown(2);
-    const paymentTableTop = doc.y;
-    doc.fontSize(10)
-      .fillColor('black')
-      .text('Métodos de Pago:', 50, paymentTableTop)
-      .text('Banco Patagonia:', 50, paymentTableTop + 15)
-      .text('Alias: PAJARO.SABADO.LARGO', 50, paymentTableTop + 30)
-      .text('CBU: 0340040108409895361003', 50, paymentTableTop + 45)
-      .text('Cuenta: CA $ 040-409895361-000', 50, paymentTableTop + 60)
-      .text('CUIL: 20224964162', 50, paymentTableTop + 75);
-
-    doc.fontSize(10)
-      .fillColor('black')
-      .text('Mercado Pago:', 300, paymentTableTop + 15)
-      .text('Alias: lionseg.mp', 300, paymentTableTop + 30)
-      .text('CVU: 0000003100041927153583', 300, paymentTableTop + 45)
-      .text('Número: 1125071506 (Jorge Luis Castillo)', 300, paymentTableTop + 60);
-
+    // Cerrar y finalizar el documento PDF
     doc.end();
-    console.log('PDF document ended');
+    console.log('PDF generado en la ruta:', filePath);
 
+    // Guardar la factura en la base de datos
     const invoice = {
       fileName,
       state: 'pending',
-      registrationDate: invoiceDate,
-      expirationDate,
+      registrationDate: fechaFactura,
+      expirationDate: fechaVencimiento,
       invoiceNumber,
       total: parseFloat(monto),
     };
@@ -445,7 +379,7 @@ app.post('/api/clientes/:id/generar-factura', async (req, res) => {
     await cliente.save();
     console.log('Factura guardada en el cliente');
 
-    // Send email with invoice attachment
+    // Configuración del transporte de correo
     const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
@@ -478,7 +412,12 @@ app.post('/api/clientes/:id/generar-factura', async (req, res) => {
       }
     });
   } catch (error) {
-    console.log('Error al generar la factura:', error);
+    console.error('Error al generar la factura:', error);
     res.status(500).send({ error: 'Error al generar la factura', details: error.message });
   }
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
