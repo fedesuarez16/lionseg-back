@@ -17,13 +17,10 @@
   const app = express();
   const port = process.env.PORT || 3000;
 
-  
-// Configuración de CORS
-app.use(cors({
-  origin: ['https://lionseg-erp.vercel.app', 'http://localhost:3000'], // Añade todos los orígenes permitidos aquí
-  methods: ['GET', 'POST', 'PUT', 'DELETE'], // Métodos permitidos
-  allowedHeaders: ['Content-Type', 'Authorization'], // Encabezados permitidos
-}));
+  // Configuración de CORS
+  app.use(cors({
+    origin: ['https://lionseg-erp.vercel.app', 'http://localhost:3000'] // Añade todos los orígenes permitidos aquí
+  }));
 
   app.use(bodyParser.json());
   // Serve static files from the 'public' directory
@@ -281,34 +278,34 @@ app.use(cors({
     }
   });
 
-// Define the route to update the state of an invoice link
-app.put('/api/clientes/:clienteId/invoiceLinks/:invoiceLinkId/state', async (req, res) => {
-  const { clienteId, invoiceLinkId } = req.params;
-  const { state } = req.body;
 
-  try {
-    const cliente = await Cliente.findById(clienteId);
-    if (!cliente) {
-      return res.status(404).json({ error: 'Client not found' });
+  // Define the route to update the state of an invoice link
+  app.put('/api/clientes/:clienteId/invoiceLinks/:invoiceLinkId/state', async (req, res) => {
+    const { clienteId, invoiceLinkId } = req.params;
+    const { state } = req.body;
+
+    try {
+      const cliente = await Cliente.findById(clienteId);
+      if (!cliente) {
+        return res.status(404).json({ error: 'Client not found' });
+      }
+
+      const invoiceLink = cliente.invoiceLinks.id(invoiceLinkId);
+      if (!invoiceLink) {
+        return res.status(404).json({ error: 'Invoice link not found' });
+      }
+
+      invoiceLink.state = state;a
+      await cliente.save();
+
+      res.status(200).json(invoiceLink);
+    } catch (error) {
+      res.status(500).json({ error: 'Could not update invoice link state' });
     }
+  });
 
-    const invoiceLink = cliente.invoiceLinks.id(invoiceLinkId);
-    if (!invoiceLink) {
-      return res.status(404).json({ error: 'Invoice link not found' });
-    }
-
-    // Check if the invoice is being marked as 'pagada'
-    if (state === 'pagada' && invoiceLink.state !== 'pagada') {
-      cliente.totalIngresos += invoiceLink.total;
-    }
-
-    invoiceLink.state = state;
-    await cliente.save();
-
-    res.status(200).json(invoiceLink);
-  } catch (error) {
-    res.status(500).json({ error: 'Could not update invoice link state' });
-  }
-});
+  app.listen(port, () => {
+    console.log(`Server is running on port ${port}`);
+  });
 
 
