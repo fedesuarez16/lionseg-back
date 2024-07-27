@@ -177,7 +177,7 @@ app.post('/api/generar-facturas', async (req, res) => {
 
       // Add service details
       const services = cliente.services.length > 0 ? cliente.services : [];
-
+      
       // Add table headers with dark gray color
       const tableTop = 280;
       const itemCodeX = 50;
@@ -217,8 +217,8 @@ app.post('/api/generar-facturas', async (req, res) => {
       const totalStartY = tableTop + 25 * services.length + 40;
       doc.text(`Sub Total: $${subTotal.toFixed(2)} ARS`, unitPriceX, totalStartY, { align: 'right' })
         .text(`Recargo por falta de pago a término: $${recargo.toFixed(2)} ARS`, unitPriceX, totalStartY + 15, { align: 'right' })
-        .moveDown(2) // Added space between recargo and total
-        .text(`Total: $${total.toFixed(2)} ARS`, unitPriceX, totalStartY + 45, { align: 'right', bold: true });
+        .moveDown(8) // Increased space between recargo and total
+        .text(`Total: $${total.toFixed(2)} ARS`, unitPriceX, totalStartY + 60, { align: 'right', bold: true });
 
       // Add payment methods
       doc.moveDown(2);
