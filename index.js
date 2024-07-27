@@ -218,7 +218,7 @@
         doc.text(`Sub Total: $${subTotal.toFixed(2)} ARS`, unitPriceX, totalStartY, { align: 'right' })
           .text(`Recargo por falta de pago a término: $${recargo.toFixed(2)} ARS`, unitPriceX, totalStartY + 35, { align: 'right' })
           .moveDown(8) // Increased space between recargo and total
-          .text(`Total: $${total.toFixed(2)} ARS`, unitPriceX, totalStartY + 60, { align: 'right', bold: true });
+          .text(`Total: $${total.toFixed(2)} ARS`, unitPriceX, totalStartY + 80, { align: 'right', bold: true });
 
         // Add payment methods
         doc.moveDown(2);
