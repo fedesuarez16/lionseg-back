@@ -11,6 +11,7 @@ const clienteSchema = new mongoose.Schema({
       state: { type: String, default: 'pending' },
       registrationDate: Date,
       expirationDate: Date,
+      total: Number, // Añadir el campo 'total' para cada factura
     },
   ],
   services: [
@@ -25,6 +26,7 @@ const clienteSchema = new mongoose.Schema({
   ],
   creationDate: Date,
   state: { type: String, enum: ['activo', 'inactivo'], default: 'activo' }, // Updated
+  totalIngresos: { type: Number, default: 0 }, // Nuevo campo para los ingresos totales
 });
 
 const Cliente = mongoose.model('Cliente', clienteSchema);
