@@ -17,10 +17,13 @@
   const app = express();
   const port = process.env.PORT || 3000;
 
-  // Configuración de CORS
-  app.use(cors({
-    origin: ['https://lionseg-erp.vercel.app', 'http://localhost:3000'] // Añade todos los orígenes permitidos aquí
-  }));
+  
+// Configuración de CORS
+app.use(cors({
+  origin: ['https://lionseg-erp.vercel.app', 'http://localhost:3000'], // Añade todos los orígenes permitidos aquí
+  methods: ['GET', 'POST', 'PUT', 'DELETE'], // Métodos permitidos
+  allowedHeaders: ['Content-Type', 'Authorization'], // Encabezados permitidos
+}));
 
   app.use(bodyParser.json());
   // Serve static files from the 'public' directory
