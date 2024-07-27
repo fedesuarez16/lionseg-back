@@ -177,47 +177,26 @@ app.post('/api/generar-facturas', async (req, res) => {
 
       // Add service details
       const services = cliente.services.length > 0 ? cliente.services : [];
-      
-      doc.text('Descripción', 50, 280, { bold: true })
-        .text('Total', 450, 280, { align: 'right', bold: true });
 
-      services.forEach((item, index) => {
-        const y = 300 + index * 20;
-        doc.text(item.producto || 'N/A', 50, y)
-          .text(`$${(item.price || 0).toFixed(2)} ARS`, 450, y, { align: 'right' });
-      });
-
-      const subTotal = services.reduce((sum, item) => sum + (item.price || 0), 0);
-      let recargo = 0;
-      if (new Date() > expirationDate) {
-        recargo = subTotal * 0.1;
-      }
-      const total = subTotal + recargo;
-      
-      doc.moveDown(2);
-
-      // Add table for payment methods
-      doc.moveDown(2);
+      // Add table headers with dark gray color
       const tableTop = 280;
       const itemCodeX = 50;
       const descriptionX = 50;
       const unitPriceX = 450;
 
-      // Add table headers
       doc.rect(itemCodeX, tableTop - 5, unitPriceX - itemCodeX + 100, 20)
-        .fill('#f0f0f0')
+        .fill('#696969')
         .stroke();
 
-      doc.fontSize(10).fillColor('black')
+      doc.fontSize(10).fillColor('white')
         .text('Descripción', descriptionX, tableTop, { bold: true })
         .text('Total', unitPriceX, tableTop, { align: 'right', bold: true });
 
-      // Add table rows
+      // Add table rows with alternating gray colors
       services.forEach((item, index) => {
         const y = tableTop + 25 + (index * 25);
         const fillColor = index % 2 === 0 ? '#cccccc' : '#e6e6e6';
 
-        // Draw row background
         doc.rect(itemCodeX, y - 5, unitPriceX - itemCodeX + 100, 25)
           .fill(fillColor)
           .stroke();
@@ -227,13 +206,18 @@ app.post('/api/generar-facturas', async (req, res) => {
           .text(`$${(item.price || 0).toFixed(2)} ARS`, unitPriceX, y, { align: 'right' });
       });
 
-      doc.moveDown(2);
+      const subTotal = services.reduce((sum, item) => sum + (item.price || 0), 0);
+      let recargo = 0;
+      if (new Date() > expirationDate) {
+        recargo = subTotal * 0.1;
+      }
+      const total = subTotal + recargo;
 
-      // Add totals
+      // Add totals with added space
       const totalStartY = tableTop + 25 * services.length + 40;
       doc.text(`Sub Total: $${subTotal.toFixed(2)} ARS`, unitPriceX, totalStartY, { align: 'right' })
         .text(`Recargo por falta de pago a término: $${recargo.toFixed(2)} ARS`, unitPriceX, totalStartY + 15, { align: 'right' })
-        .moveDown(4) // Add space between recargo and total
+        .moveDown(2) // Added space between recargo and total
         .text(`Total: $${total.toFixed(2)} ARS`, unitPriceX, totalStartY + 45, { align: 'right', bold: true });
 
       // Add payment methods
@@ -293,7 +277,6 @@ app.post('/api/generar-facturas', async (req, res) => {
     res.status(500).json({ error });
   }
 });
-
 
 
 // Define the route to update the state of an invoice link
