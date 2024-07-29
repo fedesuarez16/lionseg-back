@@ -302,11 +302,7 @@ app.post('/api/generar-facturas', async (req, res) => {
       }
   
       invoiceLink.state = state;
-      // Check if the invoice is being marked as paid
-      if (invoiceLink.state !== 'paid' && state === 'paid') {
-        console.log(`Updating total ingresos: ${cliente.totalIngresos} + ${invoiceLink.total}`);
-        cliente.totalIngresos += invoiceLink.total;
-      }
+    
   
       await cliente.save();
   
