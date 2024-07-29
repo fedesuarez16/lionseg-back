@@ -284,32 +284,31 @@ app.post('/api/generar-facturas', async (req, res) => {
 
  
 
-  app.put('/api/clientes/:clienteId/invoiceLinks/:invoiceLinkId/state', async (req, res) => {
+   // Define the route to update the state of an invoice link
+   app.put('/api/clientes/:clienteId/invoiceLinks/:invoiceLinkId/state', async (req, res) => {
     const { clienteId, invoiceLinkId } = req.params;
     const { state } = req.body;
-  
+
     try {
       const cliente = await Cliente.findById(clienteId);
       if (!cliente) {
-        console.error('Client not found');
         return res.status(404).json({ error: 'Client not found' });
       }
-  
+
       const invoiceLink = cliente.invoiceLinks.id(invoiceLinkId);
       if (!invoiceLink) {
-        console.error('Invoice link not found');
         return res.status(404).json({ error: 'Invoice link not found' });
       }
-  
+
       invoiceLink.state = state;
-    
-  
       await cliente.save();
-  
+
       res.status(200).json(invoiceLink);
     } catch (error) {
-      console.error('Error updating invoice link state:', error);
       res.status(500).json({ error: 'Could not update invoice link state' });
     }
   });
-  
+
+  app.listen(port, () => {
+    console.log(`Server is running on port ${port}`);
+  });
