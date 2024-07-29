@@ -282,34 +282,38 @@ app.post('/api/generar-facturas', async (req, res) => {
 });
 
 
-app.put('/api/clientes/:clienteId/invoiceLinks/:invoiceLinkId/state', async (req, res) => {
-  const { clienteId, invoiceLinkId } = req.params;
-  const { state } = req.body;
+ 
 
-  try {
-    const cliente = await Cliente.findById(clienteId);
-    if (!cliente) {
-      return res.status(404).json({ error: 'Client not found' });
+  app.put('/api/clientes/:clienteId/invoiceLinks/:invoiceLinkId/state', async (req, res) => {
+    const { clienteId, invoiceLinkId } = req.params;
+    const { state } = req.body;
+  
+    try {
+      const cliente = await Cliente.findById(clienteId);
+      if (!cliente) {
+        console.error('Client not found');
+        return res.status(404).json({ error: 'Client not found' });
+      }
+  
+      const invoiceLink = cliente.invoiceLinks.id(invoiceLinkId);
+      if (!invoiceLink) {
+        console.error('Invoice link not found');
+        return res.status(404).json({ error: 'Invoice link not found' });
+      }
+  
+      invoiceLink.state = state;
+      // Check if the invoice is being marked as paid
+      if (invoiceLink.state !== 'paid' && state === 'paid') {
+        console.log(`Updating total ingresos: ${cliente.totalIngresos} + ${invoiceLink.total}`);
+        cliente.totalIngresos += invoiceLink.total;
+      }
+  
+      await cliente.save();
+  
+      res.status(200).json(invoiceLink);
+    } catch (error) {
+      console.error('Error updating invoice link state:', error);
+      res.status(500).json({ error: 'Could not update invoice link state' });
     }
-
-    const invoiceLink = cliente.invoiceLinks.id(invoiceLinkId);
-    if (!invoiceLink) {
-      return res.status(404).json({ error: 'Invoice link not found' });
-    }
-
-    // Check if the invoice is being marked as paid
-    if (invoiceLink.state !== 'paid' && state === 'paid') {
-      cliente.totalIngresos += invoiceLink.total;
-    }
-
-    invoiceLink.state = state;
-    await cliente.save();
-
-    res.status(200).json(invoiceLink);
-  } catch (error) {
-    res.status(500).json({ error: 'Could not update invoice link state' });
-  }
-});
-
-
-
+  });
+  
