@@ -282,34 +282,33 @@ app.post('/api/generar-facturas', async (req, res) => {
 });
 
 
+  // Define the route to update the state of an invoice link
+  app.put('/api/clientes/:clienteId/invoiceLinks/:invoiceLinkId/state', async (req, res) => {
+    const { clienteId, invoiceLinkId } = req.params;
+    const { state } = req.body;
 
-app.put('/api/clientes/:clienteId/invoiceLinks/:invoiceLinkId/state', async (req, res) => {
-  const { clienteId, invoiceLinkId } = req.params;
-  const { state } = req.body;
+    try {
+      const cliente = await Cliente.findById(clienteId);
+      if (!cliente) {
+        return res.status(404).json({ error: 'Client not found' });
+      }
 
-  try {
-    console.log(`Intentando actualizar el estado de la factura con clienteId: ${clienteId} e invoiceLinkId: ${invoiceLinkId} al estado: ${state}`);
-    
-    const cliente = await Cliente.findById(clienteId);
-    if (!cliente) {
-      console.log(`Cliente no encontrado con ID: ${clienteId}`);
-      return res.status(404).json({ error: 'Cliente no encontrado' });
+      const invoiceLink = cliente.invoiceLinks.id(invoiceLinkId);
+      if (!invoiceLink) {
+        return res.status(404).json({ error: 'Invoice link not found' });
+      }
+
+      invoiceLink.state = state;a
+      await cliente.save();
+
+      res.status(200).json(invoiceLink);
+    } catch (error) {
+      res.status(500).json({ error: 'Could not update invoice link state' });
     }
+  });
 
-    const invoiceLink = cliente.invoiceLinks.id(invoiceLinkId);
-    if (!invoiceLink) {
-      console.log(`Enlace de factura no encontrado con ID: ${invoiceLinkId}`);
-      return res.status(404).json({ error: 'Enlace de factura no encontrado' });
-    }
+  app.listen(port, () => {
+    console.log(`Server is running on port ${port}`);
+  });
 
-    invoiceLink.state = state;
-    await cliente.save();
-
-    console.log(`Estado de factura actualizado correctamente para invoiceLinkId: ${invoiceLinkId}`);
-    res.status(200).json(invoiceLink);
-  } catch (error) {
-    console.error('Error al actualizar el estado de la factura:', error);
-    res.status(500).json({ error: 'No se pudo actualizar el estado del enlace de factura' });
-  }
-});
 
