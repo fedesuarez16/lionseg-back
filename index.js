@@ -298,7 +298,7 @@ app.post('/api/generar-facturas', async (req, res) => {
         return res.status(404).json({ error: 'Invoice link not found' });
       }
 
-      invoiceLink.state = state;a
+      invoiceLink.state = state;
       await cliente.save();
 
       res.status(200).json(invoiceLink);
