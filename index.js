@@ -300,6 +300,11 @@ app.post('/api/generar-facturas', async (req, res) => {
         return res.status(404).json({ error: 'Invoice link not found' });
       }
 
+      if (invoiceLink.state !== 'paid' && state === 'paid') {
+        console.log(`Updating total ingresos: ${cliente.totalIngresos} + ${invoiceLink.total}`);
+        cliente.totalIngresos += invoiceLink.total;
+      }
+
       invoiceLink.state = state;
       await cliente.save();
 
