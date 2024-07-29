@@ -317,3 +317,15 @@ app.post('/api/generar-facturas', async (req, res) => {
   app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
   });
+
+
+  // Ruta para obtener el total de ingresos
+app.get('/api/total-ingresos', async (req, res) => {
+  try {
+    const clientes = await Cliente.find({});
+    const totalIngresos = clientes.reduce((total, cliente) => total + cliente.totalIngresos, 0);
+    res.status(200).json({ totalIngresos });
+  } catch (error) {
+    res.status(500).json({ error: 'Could not retrieve total ingresos' });
+  }
+});
