@@ -131,7 +131,7 @@ app.post('/api/generar-facturas', async (req, res) => {
 
     for (const cliente of clientes) {
       const doc = new PDFDocument();
-      const fileName = `factura_${cliente._id}_${Date.now()}.pdf`;
+      const fileName = `FAC_${Date.now()}.pdf`;
 
       const dirFacturas = 'public/facturas';
       if (!fs.existsSync(dirFacturas)) {
