@@ -304,6 +304,9 @@ app.post('/api/generar-facturas', async (req, res) => {
       if (invoiceLink.state !== 'paid' && state === 'paid') {
         console.log(`Updating total ingresos: ${cliente.totalIngresos} + ${invoiceLink.total}`);
         cliente.totalIngresos += invoiceLink.total;
+
+        const newIngreso = new Ingreso({ amount: invoiceLink.total });
+        await newIngreso.save();
       }
 
       invoiceLink.state = state;
