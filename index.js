@@ -284,37 +284,40 @@ app.post('/api/generar-facturas', async (req, res) => {
 
 
  
-app.put('/api/clientes/:clienteId/invoiceLinks/:invoiceLinkId/state', async (req, res) => {
-  const { clienteId, invoiceLinkId } = req.params;
-  const { state } = req.body;
 
-  try {
-    const cliente = await Cliente.findById(clienteId);
-    if (!cliente) {
-      return res.status(404).json({ error: 'Client not found' });
+   // Define the route to update the state of an invoice link
+   app.put('/api/clientes/:clienteId/invoiceLinks/:invoiceLinkId/state', async (req, res) => {
+    const { clienteId, invoiceLinkId } = req.params;
+    const { state } = req.body;
+
+    try {
+      const cliente = await Cliente.findById(clienteId);
+      if (!cliente) {
+        return res.status(404).json({ error: 'Client not found' });
+      }
+
+      const invoiceLink = cliente.invoiceLinks.id(invoiceLinkId);
+      if (!invoiceLink) {
+        return res.status(404).json({ error: 'Invoice link not found' });
+      }
+
+      if (invoiceLink.state !== 'paid' && state === 'paid') {
+        console.log(`Updating total ingresos: ${cliente.totalIngresos} + ${invoiceLink.total}`);
+        cliente.totalIngresos += invoiceLink.total;
+      }
+
+      invoiceLink.state = state;
+      await cliente.save();
+
+      res.status(200).json(invoiceLink);
+    } catch (error) {
+      res.status(500).json({ error: 'Could not update invoice link state' });
     }
+  });
 
-    const invoiceLink = cliente.invoiceLinks.id(invoiceLinkId);
-    if (!invoiceLink) {
-      return res.status(404).json({ error: 'Invoice link not found' });
-    }
-
-    if (invoiceLink.state !== 'paid' && state === 'paid') {
-      console.log(`Updating total ingresos: ${cliente.totalIngresos} + ${invoiceLink.total}`);
-      cliente.totalIngresos += invoiceLink.total;
-
-      const newIngreso = new Ingreso({ amount: invoiceLink.total });
-      await newIngreso.save();
-    }
-
-    invoiceLink.state = state;
-    await cliente.save();
-
-    res.status(200).json(invoiceLink);
-  } catch (error) {
-    res.status(500).json({ error: 'Could not update invoice link state' });
-  }
-});
+  app.listen(port, () => {
+    console.log(`Server is running on port ${port}`);
+  });
 
 
   // Ruta para obtener el total de ingresos
@@ -325,15 +328,5 @@ app.get('/api/total-ingresos', async (req, res) => {
     res.status(200).json({ totalIngresos });
   } catch (error) {
     res.status(500).json({ error: 'Could not retrieve total ingresos' });
-  }
-});
-
-
-app.get('/api/ingresos', async (req, res) => {
-  try {
-    const ingresos = await Ingreso.find({});
-    res.status(200).json(ingresos);
-  } catch (error) {
-    res.status(500).json({ error: 'Could not retrieve ingresos' });
   }
 });
