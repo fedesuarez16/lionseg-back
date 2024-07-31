@@ -333,3 +333,13 @@ app.get('/api/total-ingresos', async (req, res) => {
     res.status(500).json({ error: 'Could not retrieve total ingresos' });
   }
 });
+
+
+app.get('/api/ingresos', async (req, res) => {
+  try {
+    const ingresos = await Ingreso.find({});
+    res.status(200).json(ingresos);
+  } catch (error) {
+    res.status(500).json({ error: 'Could not retrieve ingresos' });
+  }
+});
