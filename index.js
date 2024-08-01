@@ -350,6 +350,8 @@ app.get('/api/ingresos', async (req, res) => {
 app.post('/api/clientes/:id/invoices', async (req, res) => {
   const clientId = req.params.id;
   const { monto, fechaFactura, fechaVencimiento, descripcion } = req.body;
+  console.log({ monto, fechaFactura, fechaVencimiento, descripcion }); // Agrega esto para verificar los datos
+
   try {
     const cliente = await Cliente.findById(clientId);
     if (!cliente) {
@@ -376,20 +378,19 @@ app.post('/api/clientes/:id/invoices', async (req, res) => {
 
     doc.end();
 
-
-    const invoice = {
+    // Añadir la nueva factura al array de facturas del cliente
+    const newInvoice = {
       fileName,
+      registrationDate: new Date(fechaFactura),
+      expirationDate: new Date(fechaVencimiento),
       state: 'pending',
-      registrationDate: invoiceDate,
-      expirationDate,
-      invoiceNumber,
-      total,
+      total: monto, // Guardar el monto en el campo 'total'
     };
 
-    cliente.invoiceLinks.push(invoice);
+    cliente.invoiceLinks.push(newInvoice);
     await cliente.save();
 
-    res.status(201).json(invoice);
+    res.status(201).json(newInvoice);
   } catch (error) {
     res.status(500).json({ error: 'Could not create invoice' });
   }
