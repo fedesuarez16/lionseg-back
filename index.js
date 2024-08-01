@@ -121,6 +121,8 @@
       res.status(500).json({ error: 'Could not create invoice' });
     }
   });
+
+  
 // Generate invoices for all active clients
 app.post('/api/generar-facturas', async (req, res) => {
   try {
@@ -341,5 +343,50 @@ app.get('/api/ingresos', async (req, res) => {
     res.status(200).json(ingresos);
   } catch (error) {
     res.status(500).json({ error: 'Could not retrieve ingresos' });
+  }
+});
+
+
+// Create a new invoice for a client
+app.post('/api/clientes/:id/invoices', async (req, res) => {
+  const clientId = req.params.id;
+  try {
+    const cliente = await Cliente.findById(clientId);
+    if (!cliente) {
+      return res.status(404).json({ error: 'Client not found' });
+    }
+
+    // Generar factura en formato PDF
+    const doc = new PDFDocument();
+    const fileName = `FAC_${Date.now()}.pdf`;
+    const filePath = `public/facturas/${fileName}`;
+
+    if (!fs.existsSync('public/facturas')) {
+      fs.mkdirSync('public/facturas', { recursive: true });
+    }
+
+    doc.pipe(fs.createWriteStream(filePath));
+
+    // Agregar contenido a la factura (ejemplo básico)
+    doc.fontSize(20).text('Factura', { align: 'center' });
+    doc.fontSize(12).text(`Cliente: ${cliente.name}`, { align: 'left' });
+    doc.fontSize(12).text(`Fecha: ${new Date().toLocaleDateString()}`, { align: 'left' });
+
+    doc.end();
+
+    // Añadir la nueva factura al array de facturas del cliente
+    const newInvoice = {
+      fileName,
+      registrationDate: new Date(),
+      expirationDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 días desde la fecha de registro
+      state: 'pending'
+    };
+
+    cliente.invoiceLinks.push(newInvoice);
+    await cliente.save();
+
+    res.status(201).json(newInvoice);
+  } catch (error) {
+    res.status(500).json({ error: 'Could not create invoice' });
   }
 });
