@@ -376,19 +376,20 @@ app.post('/api/clientes/:id/invoices', async (req, res) => {
 
     doc.end();
 
-    // Añadir la nueva factura al array de facturas del cliente
-    const newInvoice = {
+
+    const invoice = {
       fileName,
-      registrationDate: new Date(fechaFactura),
-      expirationDate: new Date(fechaVencimiento),
       state: 'pending',
-      total: monto, // Guardar el monto en el campo 'total'
+      registrationDate: invoiceDate,
+      expirationDate,
+      invoiceNumber,
+      total,
     };
 
-    cliente.invoiceLinks.push(newInvoice);
+    cliente.invoiceLinks.push(invoice);
     await cliente.save();
 
-    res.status(201).json(newInvoice);
+    res.status(201).json(invoice);
   } catch (error) {
     res.status(500).json({ error: 'Could not create invoice' });
   }
