@@ -346,6 +346,7 @@ app.get('/api/ingresos', async (req, res) => {
   }
 });
 
+// Create a new invoice for a client
 app.post('/api/clientes/:id/invoices', async (req, res) => {
   const clientId = req.params.id;
   const { monto, fechaFactura, fechaVencimiento, descripcion } = req.body;
@@ -393,8 +394,3 @@ app.post('/api/clientes/:id/invoices', async (req, res) => {
   }
 });
 
-// Inicia el servidor en el puerto deseado
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
