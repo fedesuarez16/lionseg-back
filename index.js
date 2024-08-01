@@ -346,7 +346,6 @@ app.get('/api/ingresos', async (req, res) => {
   }
 });
 
-/ Create a new invoice for a client
 app.post('/api/clientes/:id/invoices', async (req, res) => {
   const clientId = req.params.id;
   const { monto, fechaFactura, fechaVencimiento, descripcion } = req.body;
