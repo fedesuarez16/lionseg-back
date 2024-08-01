@@ -346,39 +346,61 @@ app.get('/api/ingresos', async (req, res) => {
   }
 });
 
-// Create a new invoice for a client
+// Crear una nueva factura para un cliente específico
 app.post('/api/clientes/:id/invoices', async (req, res) => {
   const clientId = req.params.id;
   const { monto, fechaFactura, fechaVencimiento, descripcion } = req.body;
-  console.log({ monto, fechaFactura, fechaVencimiento, descripcion }); // Agrega esto para verificar los datos
-
+  
   try {
     const cliente = await Cliente.findById(clientId);
     if (!cliente) {
-      return res.status(404).json({ error: 'Client not found' });
+      return res.status(404).json({ error: 'Cliente no encontrado' });
     }
 
     // Generar factura en formato PDF
     const doc = new PDFDocument();
     const fileName = `FAC_${Date.now()}.pdf`;
-    const filePath = `public/facturas/${fileName}`;
 
-    if (!fs.existsSync('public/facturas')) {
-      fs.mkdirSync('public/facturas', { recursive: true });
+    const dirFacturas = 'public/facturas';
+    if (!fs.existsSync(dirFacturas)) {
+      fs.mkdirSync(dirFacturas, { recursive: true });
     }
 
+    const filePath = `${dirFacturas}/${fileName}`;
     doc.pipe(fs.createWriteStream(filePath));
 
-    // Agregar contenido a la factura (ejemplo básico)
-    doc.fontSize(20).text('Factura', { align: 'center' });
-    doc.fontSize(12).text(`Cliente: ${cliente.name}`, { align: 'left' });
-    doc.fontSize(12).text(`Fecha: ${new Date().toLocaleDateString()}`, { align: 'left' });
-    doc.fontSize(12).text(`Monto: ${monto}`, { align: 'left' });
-    doc.fontSize(12).text(`Descripción: ${descripcion}`, { align: 'left' });
+    // Agregar logo
+    const logoPath = 'C:\\Users\\fedes\\clients-panel\\server\\logo.png'; // Reemplazar con la ruta a tu logo
+    if (fs.existsSync(logoPath)) {
+      doc.image(logoPath, 50, 45, { width: 50 });
+    }
+
+    // Título de la factura
+    doc.fontSize(20).text('Factura', 110, 57);
+
+    // Metadatos de la factura
+    doc.fontSize(10)
+      .text(`Fecha de la Factura: ${new Date(fechaFactura).toLocaleDateString()}`, 200, 65, { align: 'right' })
+      .text(`Fecha de Vencimiento: ${new Date(fechaVencimiento).toLocaleDateString()}`, 200, 80, { align: 'right' });
+
+    // Detalles del cliente
+    doc.text(`Facturado a:`, 50, 160)
+      .text(`${cliente.name}`, 50, 175)
+      .text(`${cliente.address || 'Dirección no proporcionada'}`, 50, 190)
+      .text(`${cliente.city || ''}, ${cliente.state || ''}, ${cliente.zip || ''}`, 50, 205)
+      .text(`${cliente.country || 'País no proporcionado'}`, 50, 220);
+
+    // Detalles del servicio
+    doc.text(`Descripción:`, 50, 250)
+      .text(`${descripcion}`, 50, 265)
+      .text(`Monto: $${monto} ARS`, 50, 280);
+
+    // Totales
+    doc.text(`Total: $${monto} ARS`, 50, 300, { bold: true });
 
     doc.end();
 
-    // Añadir la nueva factura al array de facturas del cliente
+    // Crear la nueva factura en la base de datos
     const newInvoice = {
       fileName,
       registrationDate: new Date(fechaFactura),
@@ -392,7 +414,6 @@ app.post('/api/clientes/:id/invoices', async (req, res) => {
 
     res.status(201).json(newInvoice);
   } catch (error) {
-    res.status(500).json({ error: 'Could not create invoice' });
+    res.status(500).json({ error: 'No se pudo crear la factura' });
   }
 });
-
