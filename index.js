@@ -346,16 +346,19 @@ app.get('/api/ingresos', async (req, res) => {
   }
 });
 
-// Crear una nueva factura para un cliente específico
+
 app.post('/api/clientes/:id/invoices', async (req, res) => {
   const clientId = req.params.id;
   const { monto, fechaFactura, fechaVencimiento, descripcion } = req.body;
-  
+
   try {
     const cliente = await Cliente.findById(clientId);
     if (!cliente) {
       return res.status(404).json({ error: 'Cliente no encontrado' });
     }
+
+    // Verificar los datos recibidos
+    console.log({ clientId, monto, fechaFactura, fechaVencimiento, descripcion });
 
     // Generar factura en formato PDF
     const doc = new PDFDocument();
@@ -403,10 +406,10 @@ app.post('/api/clientes/:id/invoices', async (req, res) => {
     // Crear la nueva factura en la base de datos
     const newInvoice = {
       fileName,
+      state: 'pending',
       registrationDate: new Date(fechaFactura),
       expirationDate: new Date(fechaVencimiento),
-      state: 'pending',
-      total: monto, // Guardar el monto en el campo 'total'
+      total: monto,
     };
 
     cliente.invoiceLinks.push(newInvoice);
@@ -414,6 +417,12 @@ app.post('/api/clientes/:id/invoices', async (req, res) => {
 
     res.status(201).json(newInvoice);
   } catch (error) {
+    console.error('Error al crear la factura:', error);
     res.status(500).json({ error: 'No se pudo crear la factura' });
   }
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
