@@ -423,4 +423,3 @@ app.post('/api/clientes/:id/invoices', async (req, res) => {
     res.status(500).json({ error: 'No se pudo crear la factura' });
   }
 });
-
