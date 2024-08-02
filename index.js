@@ -103,24 +103,7 @@
     }
   });
 
-  // Create a new invoice for a client
-  app.post('/api/clientes/:id/invoices', async (req, res) => {
-    const clientId = req.params.id;
-    try {
-      const cliente = await Cliente.findById(clientId);
-      if (!cliente) {
-        return res.status(404).json({ error: 'Client not found' });
-      }
 
-      // Add the new invoice to the client's invoices array
-      cliente.invoiceLinks.push(req.body);
-      await cliente.save();
-
-      res.status(201).json(cliente.invoiceLinks[cliente.invoiceLinks.length - 1]); // Return the newly created invoice
-    } catch (error) {
-      res.status(500).json({ error: 'Could not create invoice' });
-    }
-  });
 
   
 // Generate invoices for all active clients
