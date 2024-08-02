@@ -347,7 +347,7 @@ app.get('/api/ingresos', async (req, res) => {
 });
 
 // Ruta para crear una nueva factura
-router.post('/api/clientes/:clientId/invoices', async (req, res) => {
+app.post('/api/clientes/:clientId/invoices', async (req, res) => {
   const { clientId } = req.params;
   const { monto, fechaFactura, fechaVencimiento, descripcion } = req.body;
 
