@@ -15,15 +15,7 @@ const clienteSchema = new mongoose.Schema({
       total: Number, // Añadir el campo 'total' para cada factura
     },
   ],
-  invoiceInd: [
-    {
-      fileName: String,
-      state: { type: String, default: 'pending' },
-      registrationDate: Date,
-      expirationDate: Date,
-      total: Number, // Añadir el campo 'total' para cada factura
-    },
-  ],
+
   services: [
     {
       producto: String,

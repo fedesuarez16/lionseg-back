@@ -329,9 +329,10 @@ app.get('/api/ingresos', async (req, res) => {
   }
 });
 
+
 app.post('/api/clientes/:clientId/invoices', async (req, res) => {
   const { clientId } = req.params;
-  const { monto, fechaFactura, fechaVencimiento, descripcion } = req.body;
+  const { monto, fechaVencimiento, descripcion } = req.body;
 
   const fileName = `IND_${Date.now()}.pdf`;
 
@@ -357,12 +358,11 @@ app.post('/api/clientes/:clientId/invoices', async (req, res) => {
 
     doc.pipe(fs.createWriteStream(`public/facturas/${fileName}`));
 
- 
     // Add invoice title
     doc.fontSize(20).text('Factura', 110, 57);
 
     // Add invoice metadata
-    const invoiceDate = new Date(fechaFactura);
+    const invoiceDate = new Date();
     const expirationDate = new Date(fechaVencimiento);
     const invoiceNumber = `INV-${Date.now()}`;
 
