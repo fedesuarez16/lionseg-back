@@ -333,7 +333,7 @@ app.post('/api/clientes/:clientId/invoices', async (req, res) => {
   const { clientId } = req.params;
   const { monto, fechaFactura, fechaVencimiento, descripcion } = req.body;
 
-  const fileName = `FAC_${Date.now()}.pdf`;
+  const fileName = `IND_${Date.now()}.pdf`;
 
   console.log('Datos recibidos del frontend:', req.body); // Verificar que los datos se reciban correctamente
 
