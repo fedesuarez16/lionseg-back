@@ -409,7 +409,7 @@ app.post('/api/clientes/:id/invoices', async (req, res) => {
      
     };
 
-    cliente.invoiceLinks.push(newInvoice);
+    cliente.invoiceLinks.fileName.push(newInvoice);
     await cliente.save();
 
     console.log('Nueva factura creada:', newInvoice);
