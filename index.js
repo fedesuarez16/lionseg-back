@@ -350,6 +350,9 @@ app.post('/api/clientes/:id/invoices', async (req, res) => {
   const clientId = req.params.id;
   const { monto, fechaFactura, fechaVencimiento, descripcion } = req.body;
 
+  const enlacesFacturas = [];
+
+
   try {
     const cliente = await Cliente.findById(clientId);
     if (!cliente) {
@@ -409,8 +412,11 @@ app.post('/api/clientes/:id/invoices', async (req, res) => {
      
     };
 
-    cliente.invoiceLinks.fileName.push(newInvoice);
+    cliente.invoiceLinks.push(newInvoice);
     await cliente.save();
+
+    const facturaLink = `https://localhost:3000/facturas/${fileName}`; // Cambiar a HTTPS si es necesario
+      enlacesFacturas.push(facturaLink);
 
     console.log('Nueva factura creada:', newInvoice);
 
