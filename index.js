@@ -405,10 +405,7 @@ app.post('/api/clientes/:id/invoices', async (req, res) => {
 
     // Crear la nueva factura en la base de datos
     const newInvoice = {
-      fileName,
-      state: 'pending',
-      registrationDate: new Date(fechaFactura),
-      expirationDate: new Date(fechaVencimiento),
+      
       total: monto,
     };
 
