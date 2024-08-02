@@ -103,7 +103,7 @@
     }
   });
 
-
+ 
 
   
 // Generate invoices for all active clients
@@ -329,9 +329,18 @@ app.get('/api/ingresos', async (req, res) => {
   }
 });
 
+const fs = require('fs');
+const PDFDocument = require('pdfkit');
+const path = require('path');
+const nodemailer = require('nodemailer');
+
+
+
 app.post('/api/clientes/:clientId/invoices', async (req, res) => {
   const { clientId } = req.params;
   const { monto, fechaFactura, fechaVencimiento, descripcion } = req.body;
+
+  const fileName = `FAC_${Date.now()}.pdf`;
 
   console.log('Datos recibidos del frontend:', req.body); // Verificar que los datos se reciban correctamente
 
@@ -342,12 +351,97 @@ app.post('/api/clientes/:clientId/invoices', async (req, res) => {
       return res.status(404).send({ message: 'Cliente no encontrado' });
     }
 
+    const doc = new PDFDocument();
+    const dirFacturas = 'public/facturas';
+    if (!fs.existsSync(dirFacturas)) {
+      const dirPublic = 'public';
+      if (!fs.existsSync(dirPublic)) {
+        fs.mkdirSync(dirPublic);
+      }
+      fs.mkdirSync(dirFacturas);
+    }
+
+    doc.pipe(fs.createWriteStream(`public/facturas/${fileName}`));
+
+    // Add logo
+    const logoPath = path.join(__dirname, 'logo.png'); // Replace with the path to your logo
+    if (fs.existsSync(logoPath)) {
+      doc.image(logoPath, 50, 45, { width: 50 });
+    }
+
+    // Add invoice title
+    doc.fontSize(20).text('Factura', 110, 57);
+
+    // Add invoice metadata
+    const invoiceDate = new Date(fechaFactura);
+    const expirationDate = new Date(fechaVencimiento);
+    const invoiceNumber = `INV-${Date.now()}`;
+
+    doc.fontSize(10)
+      .text(`Fecha de la Factura: ${invoiceDate.toLocaleDateString()}`, 200, 65, { align: 'right' })
+      .text(`Fecha de Vencimiento: ${expirationDate.toLocaleDateString()}`, 200, 80, { align: 'right' })
+      .text(`Número de Factura: ${invoiceNumber}`, 200, 95, { align: 'right' });
+
+    doc.moveDown(2);
+
+    // Add client details
+    doc.text(`Facturado a:`, 50, 160)
+      .text(`${cliente.name}`, 50, 175)
+      .text(`${cliente.address || 'Dirección no proporcionada'}`, 50, 190)
+      .text(`${cliente.city || ''}, ${cliente.state || ''}, ${cliente.zip || ''}`, 50, 205)
+      .text(`${cliente.country || 'País no proporcionado'}`, 50, 220);
+
+    doc.moveDown(2);
+
+    // Add service details
+    doc.fontSize(10).fillColor('black')
+      .text('Descripción', 50, 280, { bold: true })
+      .text('Total', 450, 280, { align: 'right', bold: true });
+
+    const y = 305;
+    doc.fontSize(10).fillColor('black')
+      .text(descripcion, 50, y)
+      .text(`$${parseFloat(monto).toFixed(2)} ARS`, 450, y, { align: 'right' });
+
+    const total = parseFloat(monto);
+
+    // Add totals
+    doc.text(`Total: $${total.toFixed(2)} ARS`, 450, y + 50, { align: 'right', bold: true });
+
+    // Add payment methods
+    doc.moveDown(2);
+    const paymentTableTop = doc.y;
+    const paymentDescriptionX = 50;
+    const paymentAmountX = 300;
+
+    doc.fontSize(10)
+      .fillColor('black')
+      .text('Métodos de Pago:', paymentDescriptionX, paymentTableTop)
+      .text('Banco Patagonia:', paymentDescriptionX, paymentTableTop + 15)
+      .text('Alias: PAJARO.SABADO.LARGO', paymentDescriptionX, paymentTableTop + 30)
+      .text('CBU: 0340040108409895361003', paymentDescriptionX, paymentTableTop + 45)
+      .text('Cuenta: CA $ 040-409895361-000', paymentDescriptionX, paymentTableTop + 60)
+      .text('CUIL: 20224964162', paymentDescriptionX, paymentTableTop + 75);
+
+    doc.fontSize(10)
+      .fillColor('black')
+      .text('Mercado Pago:', paymentAmountX, paymentTableTop + 15)
+      .text('Alias: lionseg.mp', paymentAmountX, paymentTableTop + 30)
+      .text('CVU: 0000003100041927153583', paymentAmountX, paymentTableTop + 45)
+      .text('Número: 1125071506 (Jorge Luis Castillo)', paymentAmountX, paymentTableTop + 60);
+
+    // Add custom message at the bottom
+    const customMessageY = doc.y + 20;
+    doc.text('Puedes transferir a la cuenta de tu preferencia y debes enviar el comprobante al siguiente número', 50, customMessageY);
+
+    doc.end();
+
     // Crear una nueva factura
     const nuevaFactura = {
-      fileName: descripcion,
-      registrationDate: new Date(fechaFactura),
-      expirationDate: new Date(fechaVencimiento),
-      total: parseFloat(monto),
+      fileName,
+      registrationDate: invoiceDate,
+      expirationDate: expirationDate,
+      total: total,
     };
 
     console.log('Nueva factura creada:', nuevaFactura); // Verificar los datos de la nueva factura
@@ -355,12 +449,19 @@ app.post('/api/clientes/:clientId/invoices', async (req, res) => {
     // Añadir la factura al cliente
     cliente.invoiceLinks.push(nuevaFactura);
 
-
-
     // Guardar los cambios en la base de datos
     await cliente.save();
 
     console.log('Cliente actualizado:', cliente); // Verificar que el cliente se actualizó correctamente
+
+    // Enviar correo electrónico con la factura
+    await transporter.sendMail({
+      from: 'coflipweb@gmail.com',
+      to: cliente.email,
+      subject: 'Factura',
+      text: 'Se adjunta la factura.',
+      attachments: [{ filename: fileName, path: `./public/facturas/${fileName}` }],
+    });
 
     res.status(201).send({ message: 'Factura creada exitosamente', factura: nuevaFactura });
   } catch (error) {
