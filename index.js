@@ -366,10 +366,9 @@ app.post('/api/clientes/:clientId/invoices', async (req, res) => {
     };
 
     // Añadir la factura al cliente
-    cliente.invoiceLinks.push(nuevaFactura);
+    cliente.invoiceInd.push(nuevaFactura);
 
-    // Actualizar el total de ingresos del cliente
-    cliente.totalIngresos += parseFloat(monto);
+
 
     // Guardar los cambios en la base de datos
     await cliente.save();
