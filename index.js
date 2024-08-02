@@ -363,12 +363,6 @@ app.post('/api/clientes/:clientId/invoices', async (req, res) => {
 
     doc.pipe(fs.createWriteStream(`public/facturas/${fileName}`));
 
-    // Add logo
-    const logoPath = path.join(__dirname, 'logo.png'); // Replace with the path to your logo
-    if (fs.existsSync(logoPath)) {
-      doc.image(logoPath, 50, 45, { width: 50 });
-    }
-
     // Add invoice title
     doc.fontSize(20).text('Factura', 110, 57);
 
