@@ -413,11 +413,13 @@ app.post('/api/clientes/:id/invoices', async (req, res) => {
     };
 
     cliente.invoiceLinks.push(newInvoice);
+    
+    const facturaLink = `https://localhost:3000/facturas/${fileName}`; // Cambiar a HTTPS si es necesario
+    enlacesFacturas.push(facturaLink);
+    
     await cliente.save();
 
-    const facturaLink = `https://localhost:3000/facturas/${fileName}`; // Cambiar a HTTPS si es necesario
-      enlacesFacturas.push(facturaLink);
-
+    
     console.log('Nueva factura creada:', newInvoice);
 
     res.status(201).json(newInvoice);
