@@ -346,7 +346,6 @@ app.get('/api/ingresos', async (req, res) => {
   }
 });
 
-// Ruta para crear una nueva factura
 app.post('/api/clientes/:clientId/invoices', async (req, res) => {
   const { clientId } = req.params;
   const { monto, fechaFactura, fechaVencimiento, descripcion } = req.body;
@@ -368,14 +367,17 @@ app.post('/api/clientes/:clientId/invoices', async (req, res) => {
       total: parseFloat(monto),
     };
 
+    console.log('Nueva factura creada:', nuevaFactura); // Verificar los datos de la nueva factura
+
     // Añadir la factura al cliente
     cliente.invoiceLinks.push(nuevaFactura);
 
-    // Actualizar el total de ingresos del cliente
-    cliente.totalIngresos += parseFloat(monto);
+
 
     // Guardar los cambios en la base de datos
     await cliente.save();
+
+    console.log('Cliente actualizado:', cliente); // Verificar que el cliente se actualizó correctamente
 
     res.status(201).send({ message: 'Factura creada exitosamente', factura: nuevaFactura });
   } catch (error) {
