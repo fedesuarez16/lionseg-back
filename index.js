@@ -405,8 +405,8 @@ app.post('/api/clientes/:id/invoices', async (req, res) => {
 
     // Crear la nueva factura en la base de datos
     const newInvoice = {
-      
-      total: monto,
+      fileName,
+     
     };
 
     cliente.invoiceLinks.push(newInvoice);
