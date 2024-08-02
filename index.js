@@ -346,9 +346,12 @@ app.get('/api/ingresos', async (req, res) => {
   }
 });
 
-app.post('/api/clientes/:clientId/invoices', async (req, res) => {
+// Ruta para crear una nueva factura
+router.post('/api/clientes/:clientId/invoices', async (req, res) => {
   const { clientId } = req.params;
   const { monto, fechaFactura, fechaVencimiento, descripcion } = req.body;
+
+  console.log('Datos recibidos del frontend:', req.body); // Verificar que los datos se reciban correctamente
 
   try {
     // Buscar al cliente por su ID
@@ -362,13 +365,14 @@ app.post('/api/clientes/:clientId/invoices', async (req, res) => {
       fileName: descripcion,
       registrationDate: new Date(fechaFactura),
       expirationDate: new Date(fechaVencimiento),
-      total: monto,
+      total: parseFloat(monto),
     };
 
     // Añadir la factura al cliente
-    cliente.invoiceInd.push(nuevaFactura);
+    cliente.invoiceLinks.push(nuevaFactura);
 
-
+    // Actualizar el total de ingresos del cliente
+    cliente.totalIngresos += parseFloat(monto);
 
     // Guardar los cambios en la base de datos
     await cliente.save();
