@@ -346,80 +346,37 @@ app.get('/api/ingresos', async (req, res) => {
   }
 });
 
-app.post('/api/clientes/:id/invoices', async (req, res) => {
-  const clientId = req.params.id;
+app.post('/api/clientes/:clientId/invoices', async (req, res) => {
+  const { clientId } = req.params;
   const { monto, fechaFactura, fechaVencimiento, descripcion } = req.body;
 
   try {
+    // Buscar al cliente por su ID
     const cliente = await Cliente.findById(clientId);
     if (!cliente) {
-      console.error(`Cliente no encontrado con ID: ${clientId}`);
-      return res.status(404).json({ error: 'Cliente no encontrado' });
+      return res.status(404).send({ message: 'Cliente no encontrado' });
     }
 
-    // Verificar los datos recibidos
-    console.log('Datos recibidos:', { monto, fechaFactura, fechaVencimiento, descripcion });
-
-    // Generar factura en formato PDF
-    const doc = new PDFDocument();
-    const fileName = `FAC_${Date.now()}.pdf`;
-
-    const dirFacturas = 'public/facturas';
-    if (!fs.existsSync(dirFacturas)) {
-      fs.mkdirSync(dirFacturas, { recursive: true });
-    }
-
-    const filePath = `${dirFacturas}/${fileName}`;
-    doc.pipe(fs.createWriteStream(filePath));
-
-    // Agregar logo
-    const logoPath = 'C:\\Users\\fedes\\clients-panel\\server\\logo.png';
-    if (fs.existsSync(logoPath)) {
-      doc.image(logoPath, 50, 45, { width: 50 });
-    }
-
-    // Título de la factura
-    doc.fontSize(20).text('Factura', 110, 57);
-
-    // Metadatos de la factura
-    doc.fontSize(10)
-      .text(`Fecha de la Factura: ${new Date(fechaFactura).toLocaleDateString()}`, 200, 65, { align: 'right' })
-      .text(`Fecha de Vencimiento: ${new Date(fechaVencimiento).toLocaleDateString()}`, 200, 80, { align: 'right' });
-
-    // Detalles del cliente
-    doc.text(`Facturado a:`, 50, 160)
-      .text(`${cliente.name}`, 50, 175)
-      .text(`${cliente.address || 'Dirección no proporcionada'}`, 50, 190)
-      .text(`${cliente.city || ''}, ${cliente.state || ''}, ${cliente.zip || ''}`, 50, 205)
-      .text(`${cliente.country || 'País no proporcionado'}`, 50, 220);
-
-    // Detalles del servicio
-    doc.text(`Descripción:`, 50, 250)
-      .text(`${descripcion}`, 50, 265)
-      .text(`Monto: $${monto} ARS`, 50, 280);
-
-    // Totales
-    doc.text(`Total: $${monto} ARS`, 50, 300, { bold: true });
-
-    doc.end();
-
-    // Crear la nueva factura en la base de datos
-    const newInvoice = {
-      fileName,
-      state: 'pending',
-      registrationDate: (fechaFactura),
+    // Crear una nueva factura
+    const nuevaFactura = {
+      fileName: descripcion,
+      registrationDate: new Date(fechaFactura),
       expirationDate: new Date(fechaVencimiento),
       total: monto,
     };
 
-    cliente.invoiceLinks.push(newInvoice);
+    // Añadir la factura al cliente
+    cliente.invoiceLinks.push(nuevaFactura);
+
+    // Actualizar el total de ingresos del cliente
+    cliente.totalIngresos += parseFloat(monto);
+
+    // Guardar los cambios en la base de datos
     await cliente.save();
 
-    console.log('Nueva factura creada:', newInvoice);
-
-    res.status(201).json(newInvoice);
+    res.status(201).send({ message: 'Factura creada exitosamente', factura: nuevaFactura });
   } catch (error) {
     console.error('Error al crear la factura:', error);
-    res.status(500).json({ error: 'No se pudo crear la factura' });
+    res.status(500).send({ message: 'Error al crear la factura', error });
   }
 });
