@@ -329,7 +329,6 @@ app.get('/api/ingresos', async (req, res) => {
   }
 });
 
-
 app.post('/api/clientes/:clientId/invoices', async (req, res) => {
   const { clientId } = req.params;
   const { monto, fechaVencimiento, descripcion } = req.body;
@@ -383,12 +382,16 @@ app.post('/api/clientes/:clientId/invoices', async (req, res) => {
     doc.moveDown(2);
 
     // Add service details
-    doc.fontSize(10).fillColor('black')
+    // Background for the header
+    doc.rect(50, 275, 500, 20).fill('#d3d3d3'); // Light grey background for header
+    doc.fillColor('black').fontSize(10)
       .text('Descripción', 50, 280, { bold: true })
       .text('Total', 450, 280, { align: 'right', bold: true });
 
     const y = 305;
-    doc.fontSize(10).fillColor('black')
+    // Background for the row
+    doc.rect(50, y - 5, 500, 20).fill('#f0f0f0'); // Lighter grey background for row
+    doc.fillColor('black').fontSize(10)
       .text(descripcion, 50, y)
       .text(`$${parseFloat(monto).toFixed(2)} ARS`, 450, y, { align: 'right' });
 
@@ -458,3 +461,4 @@ app.post('/api/clientes/:clientId/invoices', async (req, res) => {
     res.status(500).send({ message: 'Error al crear la factura', error });
   }
 });
+
