@@ -329,6 +329,17 @@ app.get('/api/ingresos', async (req, res) => {
   }
 });
 
+// Ruta para eliminar todos los ingresos
+app.delete('/api/ingresos', async (req, res) => {
+  try {
+    await Ingreso.deleteMany({});
+    res.status(200).json({ message: 'Historial de ingresos eliminado exitosamente' });
+  } catch (error) {
+    res.status(500).json({ error: 'No se pudo eliminar el historial de ingresos' });
+  }
+});
+
+
 app.post('/api/clientes/:clientId/invoices', async (req, res) => {
   const { clientId } = req.params;
   const { monto, fechaVencimiento, descripcion } = req.body;
