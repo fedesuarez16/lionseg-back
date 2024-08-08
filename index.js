@@ -269,8 +269,6 @@ app.post('/api/generar-facturas', async (req, res) => {
 
 
  
-
-
 app.put('/api/clientes/:clienteId/invoiceLinks/:invoiceLinkId/state', async (req, res) => {
   const { clienteId, invoiceLinkId } = req.params;
   const { state } = req.body;
@@ -311,12 +309,8 @@ app.put('/api/clientes/:clienteId/invoiceLinks/:invoiceLinkId/state', async (req
         html: `<p>Estimado ${cliente.name},</p>
                <p>Su factura con número <b>${invoiceLink.invoiceNumber}</b> ha sido marcada como pagada.</p>
                <p>Gracias por su pago.</p>
-               <img src="cid:logo"/>`,
-        attachments: [{
-          filename: 'logo.png',
-          path: './public/logo.png',
-          cid: 'logo'
-        }]
+               `,
+      
       };
 
       await transporter.sendMail(mailOptions);
@@ -330,7 +324,6 @@ app.put('/api/clientes/:clienteId/invoiceLinks/:invoiceLinkId/state', async (req
     res.status(500).json({ error: 'Could not update invoice link state' });
   }
 });
-
 
   // Ruta para obtener el total de ingresos
 app.get('/api/total-ingresos', async (req, res) => {
