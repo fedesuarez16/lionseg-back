@@ -270,6 +270,8 @@ app.post('/api/generar-facturas', async (req, res) => {
 
  
 
+
+
 app.put('/api/clientes/:clienteId/invoiceLinks/:invoiceLinkId/state', async (req, res) => {
   const { clienteId, invoiceLinkId } = req.params;
   const { state } = req.body;
@@ -291,38 +293,40 @@ app.put('/api/clientes/:clienteId/invoiceLinks/:invoiceLinkId/state', async (req
 
       const newIngreso = new Ingreso({ amount: invoiceLink.total });
       await newIngreso.save();
-
-      // Enviar correo al cliente con logo adjunto
-      const mailOptions = {
-        from: 'your-email@gmail.com',
-        to: cliente.email,
-        subject: 'Factura Pagada',
-        html: `
-          <p>Estimado/a ${cliente.name},</p>
-          <p>Su factura con número ${invoiceLink.invoiceNumber} ha sido pagada. Gracias por su pago.</p>
-          <p>Saludos,</p>
-          <p>Su empresa</p>
-          <img src="cid:logo" alt="Logo" style="width:100px;"/>
-        `,
-        
-      };
-
-      transporter.sendMail(mailOptions, (error, info) => {
-        if (error) {
-          console.log('Error al enviar el correo:', error);
-        } else {
-          console.log('Correo enviado: ' + info.response);
-        }
-      });
     }
 
     invoiceLink.state = state;
     await cliente.save();
 
+    // Enviar correo electrónico solo si la factura ha sido pagada
+    if (state === 'paid') {
+      const mailOptions = {
+        from: 'coflipweb@gmail.com',
+        to: cliente.email,
+        subject: 'Confirmación de pago',
+        html: `<p>Estimado ${cliente.name},</p>
+               <p>Su factura con número <b>${invoiceLink.invoiceNumber}</b> ha sido marcada como pagada.</p>
+               <p>Gracias por su pago.</p>
+               <img src="cid:logo"/>`,  // Aquí es donde se inserta la imagen en el cuerpo del correo
+        attachments: [{
+          filename: 'logo.png',
+          path: './public/logo.png',
+          cid: 'logo' // Debe coincidir con el cid en el HTML del correo
+        }]
+      };
+
+      await transporter.sendMail(mailOptions);
+    }
+
     res.status(200).json(invoiceLink);
   } catch (error) {
+    console.error('Error updating invoice state:', error);
     res.status(500).json({ error: 'Could not update invoice link state' });
   }
+});
+
+app.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
 });
 
   // Ruta para obtener el total de ingresos
