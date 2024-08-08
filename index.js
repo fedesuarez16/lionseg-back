@@ -269,6 +269,7 @@ app.post('/api/generar-facturas', async (req, res) => {
 
 
  
+
    // Define the route to update the state of an invoice link
    app.put('/api/clientes/:clienteId/invoiceLinks/:invoiceLinkId/state', async (req, res) => {
     const { clienteId, invoiceLinkId } = req.params;
@@ -301,6 +302,11 @@ app.post('/api/generar-facturas', async (req, res) => {
       res.status(500).json({ error: 'Could not update invoice link state' });
     }
   });
+
+  app.listen(port, () => {
+    console.log(`Server is running on port ${port}`);
+  });
+
 
   
   // Ruta para obtener el total de ingresos
