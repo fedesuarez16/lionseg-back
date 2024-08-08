@@ -270,43 +270,60 @@ app.post('/api/generar-facturas', async (req, res) => {
 
  
 
-   // Define the route to update the state of an invoice link
-   app.put('/api/clientes/:clienteId/invoiceLinks/:invoiceLinkId/state', async (req, res) => {
-    const { clienteId, invoiceLinkId } = req.params;
-    const { state } = req.body;
+app.put('/api/clientes/:clienteId/invoiceLinks/:invoiceLinkId/state', async (req, res) => {
+  const { clienteId, invoiceLinkId } = req.params;
+  const { state } = req.body;
 
-    try {
-      const cliente = await Cliente.findById(clienteId);
-      if (!cliente) {
-        return res.status(404).json({ error: 'Client not found' });
-      }
-
-      const invoiceLink = cliente.invoiceLinks.id(invoiceLinkId);
-      if (!invoiceLink) {
-        return res.status(404).json({ error: 'Invoice link not found' });
-      }
-
-      if (invoiceLink.state !== 'paid' && state === 'paid') {
-        console.log(`Updating total ingresos: ${cliente.totalIngresos} + ${invoiceLink.total}`);
-        cliente.totalIngresos += invoiceLink.total;
-
-        const newIngreso = new Ingreso({ amount: invoiceLink.total });
-        await newIngreso.save();
-      }
-
-      invoiceLink.state = state;
-      await cliente.save();
-
-      res.status(200).json(invoiceLink);
-    } catch (error) {
-      res.status(500).json({ error: 'Could not update invoice link state' });
+  try {
+    const cliente = await Cliente.findById(clienteId);
+    if (!cliente) {
+      return res.status(404).json({ error: 'Client not found' });
     }
-  });
 
-  app.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
-  });
+    const invoiceLink = cliente.invoiceLinks.id(invoiceLinkId);
+    if (!invoiceLink) {
+      return res.status(404).json({ error: 'Invoice link not found' });
+    }
 
+    if (invoiceLink.state !== 'paid' && state === 'paid') {
+      console.log(`Updating total ingresos: ${cliente.totalIngresos} + ${invoiceLink.total}`);
+      cliente.totalIngresos += invoiceLink.total;
+
+      const newIngreso = new Ingreso({ amount: invoiceLink.total });
+      await newIngreso.save();
+
+      // Enviar correo al cliente con logo adjunto
+      const mailOptions = {
+        from: 'your-email@gmail.com',
+        to: cliente.email,
+        subject: 'Factura Pagada',
+        html: `
+          <p>Estimado/a ${cliente.name},</p>
+          <p>Su factura con número ${invoiceLink.invoiceNumber} ha sido pagada. Gracias por su pago.</p>
+          <p>Saludos,</p>
+          <p>Su empresa</p>
+          <img src="cid:logo" alt="Logo" style="width:100px;"/>
+        `,
+        
+      };
+
+      transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+          console.log('Error al enviar el correo:', error);
+        } else {
+          console.log('Correo enviado: ' + info.response);
+        }
+      });
+    }
+
+    invoiceLink.state = state;
+    await cliente.save();
+
+    res.status(200).json(invoiceLink);
+  } catch (error) {
+    res.status(500).json({ error: 'Could not update invoice link state' });
+  }
+});
 
   // Ruta para obtener el total de ingresos
 app.get('/api/total-ingresos', async (req, res) => {
