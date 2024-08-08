@@ -271,24 +271,27 @@ app.post('/api/generar-facturas', async (req, res) => {
  
 
 
-
 app.put('/api/clientes/:clienteId/invoiceLinks/:invoiceLinkId/state', async (req, res) => {
   const { clienteId, invoiceLinkId } = req.params;
   const { state } = req.body;
 
   try {
+    console.log('Buscando cliente...');
     const cliente = await Cliente.findById(clienteId);
     if (!cliente) {
+      console.log('Cliente no encontrado');
       return res.status(404).json({ error: 'Client not found' });
     }
 
+    console.log('Buscando enlace de factura...');
     const invoiceLink = cliente.invoiceLinks.id(invoiceLinkId);
     if (!invoiceLink) {
+      console.log('Enlace de factura no encontrado');
       return res.status(404).json({ error: 'Invoice link not found' });
     }
 
     if (invoiceLink.state !== 'paid' && state === 'paid') {
-      console.log(`Updating total ingresos: ${cliente.totalIngresos} + ${invoiceLink.total}`);
+      console.log('Actualizando total ingresos...');
       cliente.totalIngresos += invoiceLink.total;
 
       const newIngreso = new Ingreso({ amount: invoiceLink.total });
@@ -300,6 +303,7 @@ app.put('/api/clientes/:clienteId/invoiceLinks/:invoiceLinkId/state', async (req
 
     // Enviar correo electrónico solo si la factura ha sido pagada
     if (state === 'paid') {
+      console.log('Enviando correo electrónico...');
       const mailOptions = {
         from: 'coflipweb@gmail.com',
         to: cliente.email,
@@ -307,27 +311,26 @@ app.put('/api/clientes/:clienteId/invoiceLinks/:invoiceLinkId/state', async (req
         html: `<p>Estimado ${cliente.name},</p>
                <p>Su factura con número <b>${invoiceLink.invoiceNumber}</b> ha sido marcada como pagada.</p>
                <p>Gracias por su pago.</p>
-               <img src="cid:logo"/>`,  // Aquí es donde se inserta la imagen en el cuerpo del correo
+               <img src="cid:logo"/>`,
         attachments: [{
           filename: 'logo.png',
           path: './public/logo.png',
-          cid: 'logo' // Debe coincidir con el cid en el HTML del correo
+          cid: 'logo'
         }]
       };
 
       await transporter.sendMail(mailOptions);
+      console.log('Correo enviado');
     }
 
+    console.log('Estado de la factura actualizado con éxito');
     res.status(200).json(invoiceLink);
   } catch (error) {
-    console.error('Error updating invoice state:', error);
+    console.error('Error actualizando el estado de la factura:', error);
     res.status(500).json({ error: 'Could not update invoice link state' });
   }
 });
 
-app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
-});
 
   // Ruta para obtener el total de ingresos
 app.get('/api/total-ingresos', async (req, res) => {
