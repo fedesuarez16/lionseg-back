@@ -20,10 +20,7 @@
 
   // Configuración de CORS
   app.use(cors({
-    origin: ['https://lionseg-erp.vercel.app', 'http://localhost:3000'], // Añade todos los orígenes permitidos aquí
-    credentials: true, 
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],  // Allowed methods
-
+    origin: ['https://lionseg-erp.vercel.app', 'http://localhost:3000'] // Añade todos los orígenes permitidos aquí
   }));
 
   app.use(bodyParser.json());
@@ -105,6 +102,8 @@
       res.status(500).json({ error: 'Could not delete client' });
     }
   });
+
+ 
 
   
 // Generate invoices for all active clients
@@ -271,7 +270,91 @@ app.post('/api/generar-facturas', async (req, res) => {
 
  
 
- 
+   // Define the route to update the state of an invoice link
+   app.put('/api/clientes/:clienteId/invoiceLinks/:invoiceLinkId/state', async (req, res) => {
+    const { clienteId, invoiceLinkId } = req.params;
+    const { state } = req.body;
+
+    try {
+      const cliente = await Cliente.findById(clienteId);
+      if (!cliente) {
+        return res.status(404).json({ error: 'Client not found' });
+      }
+
+      const invoiceLink = cliente.invoiceLinks.id(invoiceLinkId);
+      if (!invoiceLink) {
+        return res.status(404).json({ error: 'Invoice link not found' });
+      }
+
+      if (invoiceLink.state !== 'paid' && state === 'paid') {
+        console.log(`Updating total ingresos: ${cliente.totalIngresos} + ${invoiceLink.total}`);
+        cliente.totalIngresos += invoiceLink.total;
+
+        const newIngreso = new Ingreso({ amount: invoiceLink.total });
+        await newIngreso.save();
+      }
+
+      invoiceLink.state = state;
+      await cliente.save();
+
+      res.status(200).json(invoiceLink);
+    } catch (error) {
+      res.status(500).json({ error: 'Could not update invoice link state' });
+    }
+  });
+
+  app.listen(port, () => {
+    console.log(`Server is running on port ${port}`);
+  });
+
+
+  app.put('/api/clientes/:clienteId/invoiceLinks/:invoiceLinkId/state', async (req, res) => {
+    const { clienteId, invoiceLinkId } = req.params;
+    const { state } = req.body;
+  
+    try {
+      const cliente = await Cliente.findById(clienteId);
+      if (!cliente) {
+        return res.status(404).json({ error: 'Client not found' });
+      }
+  
+      const invoiceLink = cliente.invoiceLinks.id(invoiceLinkId);
+      if (!invoiceLink) {
+        return res.status(404).json({ error: 'Invoice link not found' });
+      }
+  
+      if (invoiceLink.state !== 'paid' && state === 'paid') {
+        console.log(`Updating total ingresos: ${cliente.totalIngresos} + ${invoiceLink.total}`);
+        cliente.totalIngresos += invoiceLink.total;
+  
+        const newIngreso = new Ingreso({ amount: invoiceLink.total });
+        await newIngreso.save();
+  
+        // Enviar correo al cliente
+        const mailOptions = {
+          from: 'your-email@gmail.com',
+          to: cliente.email,
+          subject: 'Factura Pagada',
+          text: `Estimado/a ${cliente.name},\n\nSu factura con número ${invoiceLink.invoiceNumber} ha sido pagada. Gracias por su pago.\n\nSaludos,\nSu empresa`,
+        };
+  
+        transporter.sendMail(mailOptions, (error, info) => {
+          if (error) {
+            console.log('Error al enviar el correo:', error);
+          } else {
+            console.log('Correo enviado: ' + info.response);
+          }
+        });
+      }
+  
+      invoiceLink.state = state;
+      await cliente.save();
+  
+      res.status(200).json(invoiceLink);
+    } catch (error) {
+      res.status(500).json({ error: 'Could not update invoice link state' });
+    }
+  });
   
 
 
