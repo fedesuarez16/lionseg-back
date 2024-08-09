@@ -299,13 +299,16 @@ app.put('/api/clientes/:clienteId/invoiceLinks/:invoiceLinkId/state', async (req
       const servicioPagado = cliente.services[0]?.producto || 'Servicio no especificado';
       const dominioPagado = cliente.services[0]?.domains[0] || 'Dominio no especificado';
 
+      const shortInvoiceId = invoiceLink.id.slice(-3); // Obtiene los últimos 3 caracteres del ID
+
+
 
       emailSubject = 'Factura Pagada';
       emailHtml = `
        <div style="font-family: Arial, sans-serif; font-size: 16px; color: #333;">
         <img src="https://ff06e3665c207cadea733c050e753de1f85f5f574920726e5e9f378-apidata.googleusercontent.com/download/storage/v1/b/lionseg/o/logolionseg.png?jk=AYBlUPDnI2Evszdyh-a2ZGx80ytHohfGrIOVAR5r-SmTtwKsg59oWyRdSY325otmc83gRc5Ihn69OpBQlhFOchJrUAbafRY8AUZSlU0iyKvchAb3IVRlOW1L0bStnt67Rja3sfKvVM2p5rIX2cAhB6g7kBb_1mHJoeliHaS91HeUcRRNohCK5K8JCy6aQya-LV--BHR5mpPMNFVL_LlIVJfrtVDXMsI27NqzwVFHemihX5yFkk1I-urQ3SSssRtTM-QwGJXWm0dz_W9ciZTy_neY_LPuANPiB6xZ1RX0OQfKgiN4L41WRUnZ-FMNSnXi5HaIPRqEUgfe_n8rFYjV4TlnQ2olkiYUYTzGtS-YHE9-4IxvGRTvelcOlyIDXDys9PWPojTjL8bXLy24DFfu0Ur-LEoUyqh__cr05Cq5LANAPH676UKxQGymmMQxRjS3gXPHVvWQ12r2eaMZwz5_KHES-3xTf_LKFMCDYrBd3-iTD7vGXosiYGsb2TZz8E3_XuNvG5duZGVbO4ncGV-oVTdGJT5qj5dVUTxkdOTSleyRKvhJ1R-aIXQJD_xyoXI4zC0oO2IMBWV1u2DGLL2wKUzv5EfNz28yeTJl_H18MCQQAdV4PQMLM27LIZNQT_sI7DFQ_zFf2yM313jqQxX4DqFhyp7o7e1JZll_-zbZ9NVCVIGkPWCImM8oaSDsQOlhUCSU1--Y-9PA9NXVpi3C72x8WdY2i2xbe1fwizZriygw8muE2HpRlRCh9g6AlHECj6fMEUS2gKRNc-7z1EZFycUDmt58opiahrvYIbhwmH-_OjUlCXFmuCji77IItJ0QkxHagI9s1kxR6eMVSZtXGdBpKJ6soxrWxUsjHwqtCYSi3e_kGOZ2L52b5iei3c6tPic_9mU7RybTGsQuFUp8DVbodlM-86V1yqS9ctbJRBYL6wSB0cUEeke-8AvIDRnbWCdOazYdJCZwpx91rulvjnOjaKKDPj2Hi5WY5TwPG8U-rJkuY_1xqAfJJgIrgcmco4uW2Cx71hNMqjXGQ6_BMyAreHkA_fBTajDVs4k27pVyKlap29qE-DKw4SO9SA1oR5OKQ-Nmat1TgtNcwfjQw87V9v4HQB57wweeriW3pYGAvV43TrTWMvo-2xxpZg9lpzXtXFpvgt5fYD0F09coOZykV9ujiX0Co6of8ESlTt4DTx6UvZH_gA&isca=1" alt="Logo de tu empresa" style="width: 150px;"/>
         <h2>Estimado/a ${cliente.name},</h2>
-        <p>Su factura con número <strong>FAC-${invoiceLink.id}</strong> ha sido pagada.</p>
+       <p>Su factura con número <strong>FAC-${shortInvoiceId}</strong> ha sido pagada.</p>
         <p style="font-family: Arial, sans-serif; font-size: 14px;><strong>Servicio:</strong> ${servicioPagado} y domicilio ${dominioPagado} </p>
         <p style="font-family: Arial, sans-serif; font-size: 14px;><strong>Total pagado:</strong> $${invoiceLink.total.toFixed(2)}</p>
         <p>Gracias por su pago.</p>
@@ -318,7 +321,7 @@ app.put('/api/clientes/:clienteId/invoiceLinks/:invoiceLinkId/state', async (req
        <div style="font-family: Arial, sans-serif; font-size: 16px; color: #333;">
         <img src="https://ff06e3665c207cadea733c050e753de1f85f5f574920726e5e9f378-apidata.googleusercontent.com/download/storage/v1/b/lionseg/o/logolionseg.png?jk=AYBlUPDnI2Evszdyh-a2ZGx80ytHohfGrIOVAR5r-SmTtwKsg59oWyRdSY325otmc83gRc5Ihn69OpBQlhFOchJrUAbafRY8AUZSlU0iyKvchAb3IVRlOW1L0bStnt67Rja3sfKvVM2p5rIX2cAhB6g7kBb_1mHJoeliHaS91HeUcRRNohCK5K8JCy6aQya-LV--BHR5mpPMNFVL_LlIVJfrtVDXMsI27NqzwVFHemihX5yFkk1I-urQ3SSssRtTM-QwGJXWm0dz_W9ciZTy_neY_LPuANPiB6xZ1RX0OQfKgiN4L41WRUnZ-FMNSnXi5HaIPRqEUgfe_n8rFYjV4TlnQ2olkiYUYTzGtS-YHE9-4IxvGRTvelcOlyIDXDys9PWPojTjL8bXLy24DFfu0Ur-LEoUyqh__cr05Cq5LANAPH676UKxQGymmMQxRjS3gXPHVvWQ12r2eaMZwz5_KHES-3xTf_LKFMCDYrBd3-iTD7vGXosiYGsb2TZz8E3_XuNvG5duZGVbO4ncGV-oVTdGJT5qj5dVUTxkdOTSleyRKvhJ1R-aIXQJD_xyoXI4zC0oO2IMBWV1u2DGLL2wKUzv5EfNz28yeTJl_H18MCQQAdV4PQMLM27LIZNQT_sI7DFQ_zFf2yM313jqQxX4DqFhyp7o7e1JZll_-zbZ9NVCVIGkPWCImM8oaSDsQOlhUCSU1--Y-9PA9NXVpi3C72x8WdY2i2xbe1fwizZriygw8muE2HpRlRCh9g6AlHECj6fMEUS2gKRNc-7z1EZFycUDmt58opiahrvYIbhwmH-_OjUlCXFmuCji77IItJ0QkxHagI9s1kxR6eMVSZtXGdBpKJ6soxrWxUsjHwqtCYSi3e_kGOZ2L52b5iei3c6tPic_9mU7RybTGsQuFUp8DVbodlM-86V1yqS9ctbJRBYL6wSB0cUEeke-8AvIDRnbWCdOazYdJCZwpx91rulvjnOjaKKDPj2Hi5WY5TwPG8U-rJkuY_1xqAfJJgIrgcmco4uW2Cx71hNMqjXGQ6_BMyAreHkA_fBTajDVs4k27pVyKlap29qE-DKw4SO9SA1oR5OKQ-Nmat1TgtNcwfjQw87V9v4HQB57wweeriW3pYGAvV43TrTWMvo-2xxpZg9lpzXtXFpvgt5fYD0F09coOZykV9ujiX0Co6of8ESlTt4DTx6UvZH_gA&isca=1" alt="Logo de tu empresa" style="width: 150px;"/>
           <h2>Estimado/a ${cliente.name},</h2>
-          <p>Su factura con número <strong>${invoiceLink.id}</strong> ha vencido.</p>
+          <p>Su factura con número <strong>FAC-${shortInvoiceId}</strong> ha vencido.</p>
           <p>Por favor, realice el pago lo antes posible, de lo contrario Su sevicio se supenderá dentro de las 72hs.</p>
          <p><strong>Total pagado:</strong> $${invoiceLink.total.toFixed(2)}</p>
           <p>Saludos,<br/>Lionseg</p>
