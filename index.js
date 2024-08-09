@@ -270,50 +270,56 @@ app.post('/api/generar-facturas', async (req, res) => {
 
  
 
-   // Define the route to update the state of an invoice link
-   app.put('/api/clientes/:clienteId/invoiceLinks/:invoiceLinkId/state', async (req, res) => {
-    const { clienteId, invoiceLinkId } = req.params;
-    const { state } = req.body;
+   /// Define the route to update the state of an invoice link
+app.put('/api/clientes/:clienteId/invoiceLinks/:invoiceLinkId/state', async (req, res) => {
+  const { clienteId, invoiceLinkId } = req.params;
+  const { state } = req.body;
 
-    try {
-      const cliente = await Cliente.findById(clienteId);
-      if (!cliente) {
-        return res.status(404).json({ error: 'Client not found' });
-      }
+  try {
+    const cliente = await Cliente.findById(clienteId);
+    if (!cliente) {
+      return res.status(404).json({ error: 'Client not found' });
+    }
 
-      const invoiceLink = cliente.invoiceLinks.id(invoiceLinkId);
-      if (!invoiceLink) {
-        return res.status(404).json({ error: 'Invoice link not found' });
-      }
+    const invoiceLink = cliente.invoiceLinks.id(invoiceLinkId);
+    if (!invoiceLink) {
+      return res.status(404).json({ error: 'Invoice link not found' });
+    }
 
-      if (invoiceLink.state !== 'paid' && state === 'paid') {
-        console.log(`Updating total ingresos: ${cliente.totalIngresos} + ${invoiceLink.total}`);
-        cliente.totalIngresos += invoiceLink.total;
+    if (invoiceLink.state !== 'paid' && state === 'paid') {
+      console.log(`Updating total ingresos: ${cliente.totalIngresos} + ${invoiceLink.total}`);
+      cliente.totalIngresos += invoiceLink.total;
 
-        const newIngreso = new Ingreso({ amount: invoiceLink.total });
-        await newIngreso.save();
-      }
+      const newIngreso = new Ingreso({ amount: invoiceLink.total });
+      await newIngreso.save();
 
       await transporter.sendMail({
         from: 'coflipweb@gmail.com',
         to: cliente.email,
-        subject: 'Factura',
         subject: 'Factura Pagada',
         text: `Estimado/a ${cliente.name},\n\nSu factura con número ${invoiceLink.invoiceNumber} ha sido pagada. Gracias por su pago.\n\nSaludos,\nSu empresa`,
       });
-
-      invoiceLink.state = state;
-      await cliente.save();
-
-      res.status(200).json(invoiceLink);
-    } catch (error) {
-      res.status(500).json({ error: 'Could not update invoice link state' });
+    } else if (state === 'overdue') {
+      await transporter.sendMail({
+        from: 'coflipweb@gmail.com',
+        to: cliente.email,
+        subject: 'Factura Vencida',
+        text: `Estimado/a ${cliente.name},\n\nSu factura con número ${invoiceLink.invoiceNumber} ha vencido. Por favor, realice el pago lo antes posible.\n\nSaludos,\nSu empresa`,
+      });
     }
-  });
 
-  app.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
-  });
+    invoiceLink.state = state;
+    await cliente.save();
+
+    res.status(200).json(invoiceLink);
+  } catch (error) {
+    res.status(500).json({ error: 'Could not update invoice link state' });
+  }
+});
+
+app.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
+});
 
 
   app.put('/api/clientes/:clienteId/invoiceLinks/:invoiceLinkId/state', async (req, res) => {
