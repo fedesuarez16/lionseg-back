@@ -294,6 +294,14 @@ app.post('/api/generar-facturas', async (req, res) => {
         await newIngreso.save();
       }
 
+      await transporter.sendMail({
+        from: 'coflipweb@gmail.com',
+        to: cliente.email,
+        subject: 'Factura',
+        subject: 'Factura Pagada',
+        text: `Estimado/a ${cliente.name},\n\nSu factura con número ${invoiceLink.invoiceNumber} ha sido pagada. Gracias por su pago.\n\nSaludos,\nSu empresa`,
+      });
+
       invoiceLink.state = state;
       await cliente.save();
 
