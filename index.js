@@ -299,7 +299,7 @@ app.put('/api/clientes/:clienteId/invoiceLinks/:invoiceLinkId/state', async (req
       emailSubject = 'Factura Pagada';
       emailHtml = `
         <div style="font-family: Arial, sans-serif; font-size: 16px; color: #333;">
-          <img src="https://tu-dominio.com/path-to-your-logo.png" alt="Logo de tu empresa" style="width: 150px;"/>
+          <img src="https://files.fm/u/4dph5a7f39" alt="Logo de tu empresa" style="width: 150px;"/>
           <h2>Estimado/a ${cliente.name},</h2>
           <p>Su factura con número <strong>${invoiceLink.invoiceNumber}</strong> ha sido pagada. Gracias por su pago.</p>
           <p>Saludos,<br/>Su empresa</p>
@@ -309,7 +309,7 @@ app.put('/api/clientes/:clienteId/invoiceLinks/:invoiceLinkId/state', async (req
       emailSubject = 'Factura Vencida';
       emailHtml = `
         <div style="font-family: Arial, sans-serif; font-size: 16px; color: #333;">
-          <img src="https://tu-dominio.com/path-to-your-logo.png" alt="Logo de tu empresa" style="width: 150px;"/>
+          <img src="https://files.fm/u/4dph5a7f39" alt="Logo de tu empresa" style="width: 150px;"/>
           <h2>Estimado/a ${cliente.name},</h2>
           <p>Su factura con número <strong>${invoiceLink.invoiceNumber}</strong> ha vencido. Por favor, realice el pago lo antes posible.</p>
           <p>Saludos,<br/>Su empresa</p>
