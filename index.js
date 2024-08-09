@@ -270,7 +270,7 @@ app.post('/api/generar-facturas', async (req, res) => {
 
  
 
-   /// Define the route to update the state of an invoice link
+ // Define the route to update the state of an invoice link
 app.put('/api/clientes/:clienteId/invoiceLinks/:invoiceLinkId/state', async (req, res) => {
   const { clienteId, invoiceLinkId } = req.params;
   const { state } = req.body;
@@ -286,6 +286,9 @@ app.put('/api/clientes/:clienteId/invoiceLinks/:invoiceLinkId/state', async (req
       return res.status(404).json({ error: 'Invoice link not found' });
     }
 
+    let emailSubject = '';
+    let emailHtml = '';
+
     if (invoiceLink.state !== 'paid' && state === 'paid') {
       console.log(`Updating total ingresos: ${cliente.totalIngresos} + ${invoiceLink.total}`);
       cliente.totalIngresos += invoiceLink.total;
@@ -293,18 +296,33 @@ app.put('/api/clientes/:clienteId/invoiceLinks/:invoiceLinkId/state', async (req
       const newIngreso = new Ingreso({ amount: invoiceLink.total });
       await newIngreso.save();
 
-      await transporter.sendMail({
-        from: 'coflipweb@gmail.com',
-        to: cliente.email,
-        subject: 'Factura Pagada',
-        text: `Estimado/a ${cliente.name},\n\nSu factura con número ${invoiceLink.invoiceNumber} ha sido pagada. Gracias por su pago.\n\nSaludos,\nSu empresa`,
-      });
+      emailSubject = 'Factura Pagada';
+      emailHtml = `
+        <div style="font-family: Arial, sans-serif; font-size: 16px; color: #333;">
+          <img src="https://tu-dominio.com/path-to-your-logo.png" alt="Logo de tu empresa" style="width: 150px;"/>
+          <h2>Estimado/a ${cliente.name},</h2>
+          <p>Su factura con número <strong>${invoiceLink.invoiceNumber}</strong> ha sido pagada. Gracias por su pago.</p>
+          <p>Saludos,<br/>Su empresa</p>
+        </div>
+      `;
     } else if (state === 'overdue') {
+      emailSubject = 'Factura Vencida';
+      emailHtml = `
+        <div style="font-family: Arial, sans-serif; font-size: 16px; color: #333;">
+          <img src="https://tu-dominio.com/path-to-your-logo.png" alt="Logo de tu empresa" style="width: 150px;"/>
+          <h2>Estimado/a ${cliente.name},</h2>
+          <p>Su factura con número <strong>${invoiceLink.invoiceNumber}</strong> ha vencido. Por favor, realice el pago lo antes posible.</p>
+          <p>Saludos,<br/>Su empresa</p>
+        </div>
+      `;
+    }
+
+    if (emailSubject && emailHtml) {
       await transporter.sendMail({
         from: 'coflipweb@gmail.com',
         to: cliente.email,
-        subject: 'Factura Vencida',
-        text: `Estimado/a ${cliente.name},\n\nSu factura con número ${invoiceLink.invoiceNumber} ha vencido. Por favor, realice el pago lo antes posible.\n\nSaludos,\nSu empresa`,
+        subject: emailSubject,
+        html: emailHtml,
       });
     }
 
@@ -320,6 +338,7 @@ app.put('/api/clientes/:clienteId/invoiceLinks/:invoiceLinkId/state', async (req
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
+
 
 
   app.put('/api/clientes/:clienteId/invoiceLinks/:invoiceLinkId/state', async (req, res) => {
