@@ -294,7 +294,7 @@ app.post('/api/generar-facturas', async (req, res) => {
   
         // Enviar correo al cliente
         const mailOptions = {
-          from: 'your-email@gmail.com',
+          from: 'coflipweb@gmail.com',
           to: cliente.email,
           subject: 'Factura Pagada',
           text: `Estimado/a ${cliente.name},\n\nSu factura con número ${invoiceLink.invoiceNumber} ha sido pagada. Gracias por su pago.\n\nSaludos,\nSu empresa`,
