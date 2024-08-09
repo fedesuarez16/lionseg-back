@@ -106,8 +106,6 @@
     }
   });
 
- 
-
   
 // Generate invoices for all active clients
 app.post('/api/generar-facturas', async (req, res) => {
@@ -273,46 +271,7 @@ app.post('/api/generar-facturas', async (req, res) => {
 
  
 
-  app.put('/api/clientes/:clienteId/invoiceLinks/:invoiceLinkId/state', async (req, res) => {
-    const { clienteId, invoiceLinkId } = req.params;
-    const { state } = req.body;
-  
-    try {
-      const cliente = await Cliente.findById(clienteId);
-      if (!cliente) {
-        return res.status(404).json({ error: 'Client not found' });
-      }
-  
-      const invoiceLink = cliente.invoiceLinks.id(invoiceLinkId);
-      if (!invoiceLink) {
-        return res.status(404).json({ error: 'Invoice link not found' });
-      }
-  
-      if (invoiceLink.state !== 'paid' && state === 'paid') {
-        console.log(`Updating total ingresos: ${cliente.totalIngresos} + ${invoiceLink.total}`);
-        cliente.totalIngresos += invoiceLink.total;
-  
-        const newIngreso = new Ingreso({ amount: invoiceLink.total });
-        await newIngreso.save();
-  
-
-        await transporter.sendMail({
-          from: 'coflipweb@gmail.com',
-          to: cliente.email,
-          subject: 'Factura Pagada',
-          text: `Estimado/a ${cliente.name},\n\nSu factura con número ${invoiceLink.invoiceNumber} ha sido pagada. Gracias por su pago.\n\nSaludos,\nSu empresa`,
-        });
-        
-      }
-  
-      invoiceLink.state = state;
-      await cliente.save();
-  
-      res.status(200).json(invoiceLink);
-    } catch (error) {
-      res.status(500).json({ error: 'Could not update invoice link state' });
-    }
-  });
+ 
   
 
 
