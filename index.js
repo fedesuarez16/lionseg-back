@@ -316,6 +316,8 @@ app.put('/api/clientes/:clienteId/invoiceLinks/:invoiceLinkId/state', async (req
       </div>
       `;
     } else if (state === 'overdue') {
+      const shortInvoiceId = invoiceLink.id.slice(-3); // Obtiene los últimos 3 caracteres del ID
+
       emailSubject = 'Factura Vencida';
       emailHtml = `
        <div style="font-family: Arial, sans-serif; font-size: 16px; color: #333;">
