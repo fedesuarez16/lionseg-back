@@ -292,21 +292,14 @@ app.post('/api/generar-facturas', async (req, res) => {
         const newIngreso = new Ingreso({ amount: invoiceLink.total });
         await newIngreso.save();
   
-        // Enviar correo al cliente
-        const mailOptions = {
+
+        await transporter.sendMail({
           from: 'coflipweb@gmail.com',
           to: cliente.email,
           subject: 'Factura Pagada',
           text: `Estimado/a ${cliente.name},\n\nSu factura con número ${invoiceLink.invoiceNumber} ha sido pagada. Gracias por su pago.\n\nSaludos,\nSu empresa`,
-        };
-  
-        transporter.sendMail(mailOptions, (error, info) => {
-          if (error) {
-            console.log('Error al enviar el correo:', error);
-          } else {
-            console.log('Correo enviado: ' + info.response);
-          }
         });
+        
       }
   
       invoiceLink.state = state;
