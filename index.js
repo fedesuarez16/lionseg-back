@@ -296,14 +296,22 @@ app.put('/api/clientes/:clienteId/invoiceLinks/:invoiceLinkId/state', async (req
       const newIngreso = new Ingreso({ amount: invoiceLink.total });
       await newIngreso.save();
 
+      const servicioPagado = cliente.services[0]?.producto || 'Servicio no especificado';
+      const dominioPagado = cliente.services[0]?.domains[0] || 'Dominio no especificado';
+
+
       emailSubject = 'Factura Pagada';
       emailHtml = `
-        <div style="font-family: Arial, sans-serif; font-size: 16px; color: #333;">
-          <img src="https://lionseg.s3.us-east-2.amazonaws.com/logolionseg.png?response-content-disposition=inline&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEEIaCXVzLWVhc3QtMiJHMEUCIQDHnBe3Pp1gLD5ht1XtJbaOLNj0U6kxBH6YWWS5K%2FspegIgflvLxQacgyXFWB0lQL9j5s6G6bKCe%2B00cV7Hvy95090q5AIIOxAAGgw5MDU0MTg0NjQxMDYiDCxqoAA5JUkCcCZWwCrBAhJlHfhpNDIbhB3muMus8afejvWT7x4K%2FaBL8GL2djwbRXaF21rQV7MpuMWRE%2BnXh7ZVEKbhkRWEZUbqKDpMmWl8ylSEs7c5W6onDXcG3wGEgbomXyvct3q%2BBMBER8kGtZNV%2FNgFhh0W3dQ%2FrMlUNwiJYFGFFKi2Kpo0gG2WKaf9sRLu2FZhRSSZWcIWEwTtnBKqBRIn3YUeX6RBZ78%2F467GkMM4q7vrBjmfzeUfFb4KCYFsaYo9kMUj4lmJuwwtdn9eXiw1MxHV8tR3JnFFgx%2F6MEUpFbltBSu6XMmt08Zmp11Nb95bNH9V%2FuiszGKeMHie0NAGM6WJtHHckTJvPeeBpEJ%2FWFnAY5MJ5x8hOke7ilX6otb1kPukrcsTprIjtY32DFxtbwF%2FuDhKzC9oQFgvgZSeCEHk%2F5PPhx61TfAzpzDe5dW1BjqzAmlIebNXUR2wFfjO6mTsp7d0qiHbeQNU578moRaf4iodsv69vITaLYrkoTdnqETstc6rGuSHxsc3M3VyekuThQwtEq8AgqNy%2BkPdIPMoWkNPj5wxErUu94pkc9%2FcFM2bMmYECEsLDitfOLzxSBf1Ssz%2FwJJRes49jjEqK9oM%2BV1g%2B%2FKyfMJSw8E6PaaRXV0YPUoOYLenzQLl1uJdplBjXoZmE4AhxGqYeGe0Cbf3fI6vKuJFdGgnwyodmPXJjsFHmk8s2DgZ57d6nHNOBkb6zxE816Cz%2BOXk9QUNm8IYenVs9dS52ye9bRpFQh4Z8ipbtceXsFpbBW8%2FckjIKY2n1b1ajGVtVrGO5kn5DQ61MzVQORXbI7t6itTbfz14qgMBXV%2FEV6r9CJ3kIHAubtQF21MHLM8%3D&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20240809T014403Z&X-Amz-SignedHeaders=host&X-Amz-Expires=300&X-Amz-Credential=ASIA5FTZFLNVFOR6AUNI%2F20240809%2Fus-east-2%2Fs3%2Faws4_request&X-Amz-Signature=5bc3186f017efdc3e8718fa45b541bda3a10ba3a27f299967497a091814e2a4a" alt="Logo de tu empresa" style="width: 150px;"/>
-          <h2>Estimado/a ${cliente.name},</h2>
-          <p>Su factura con número <strong>${invoiceLink.invoiceNumber}</strong> ha sido pagada. Gracias por su pago.</p>
-          <p>Saludos,<br/>Su empresa</p>
-        </div>
+       <div style="font-family: Arial, sans-serif; font-size: 16px; color: #333;">
+        <img src="https://lionseg.s3.us-east-2.amazonaws.com/logolionseg.png?response-content-disposition=inline" alt="Logo de tu empresa" style="width: 150px;"/>
+        <h2>Estimado/a ${cliente.name},</h2>
+        <p>Su factura con número <strong>${invoiceLink.invoiceNumber}</strong> ha sido pagada.</p>
+        <p><strong>Total pagado:</strong> $${invoiceLink.total.toFixed(2)}</p>
+        <p><strong>Servicio:</strong> ${servicioPagado}</p>
+        <p><strong>Dominio:</strong> ${dominioPagado}</p>
+        <p>Gracias por su pago.</p>
+        <p>Saludos,<br/>Su empresa</p>
+      </div>
       `;
     } else if (state === 'overdue') {
       emailSubject = 'Factura Vencida';
@@ -340,55 +348,6 @@ app.listen(port, () => {
 });
 
 
-
-  app.put('/api/clientes/:clienteId/invoiceLinks/:invoiceLinkId/state', async (req, res) => {
-    const { clienteId, invoiceLinkId } = req.params;
-    const { state } = req.body;
-  
-    try {
-      const cliente = await Cliente.findById(clienteId);
-      if (!cliente) {
-        return res.status(404).json({ error: 'Client not found' });
-      }
-  
-      const invoiceLink = cliente.invoiceLinks.id(invoiceLinkId);
-      if (!invoiceLink) {
-        return res.status(404).json({ error: 'Invoice link not found' });
-      }
-  
-      if (invoiceLink.state !== 'paid' && state === 'paid') {
-        console.log(`Updating total ingresos: ${cliente.totalIngresos} + ${invoiceLink.total}`);
-        cliente.totalIngresos += invoiceLink.total;
-  
-        const newIngreso = new Ingreso({ amount: invoiceLink.total });
-        await newIngreso.save();
-  
-        // Enviar correo al cliente
-        const mailOptions = {
-          from: 'your-email@gmail.com',
-          to: cliente.email,
-          subject: 'Factura Pagada',
-          text: `Estimado/a ${cliente.name},\n\nSu factura con número ${invoiceLink.invoiceNumber} ha sido pagada. Gracias por su pago.\n\nSaludos,\nSu empresa`,
-        };
-  
-        transporter.sendMail(mailOptions, (error, info) => {
-          if (error) {
-            console.log('Error al enviar el correo:', error);
-          } else {
-            console.log('Correo enviado: ' + info.response);
-          }
-        });
-      }
-  
-      invoiceLink.state = state;
-      await cliente.save();
-  
-      res.status(200).json(invoiceLink);
-    } catch (error) {
-      res.status(500).json({ error: 'Could not update invoice link state' });
-    }
-  });
-  
 
 
   // Ruta para obtener el total de ingresos
