@@ -129,42 +129,41 @@ app.post('/api/generar-facturas', async (req, res) => {
 
       doc.pipe(fs.createWriteStream(`public/facturas/${fileName}`));
 
-      // Add logo
-      const logoPath = "https://lionseg.s3.us-east-2.amazonaws.com/logolionseg.png?response-content-disposition=inline&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEEIaCXVzLWVhc3QtMiJHMEUCIQDHnBe3Pp1gLD5ht1XtJbaOLNj0U6kxBH6YWWS5K%2FspegIgflvLxQacgyXFWB0lQL9j5s6G6bKCe%2B00cV7Hvy95090q5AIIOxAAGgw5MDU0MTg0NjQxMDYiDCxqoAA5JUkCcCZWwCrBAhJlHfhpNDIbhB3muMus8afejvWT7x4K%2FaBL8GL2djwbRXaF21rQV7MpuMWRE%2BnXh7ZVEKbhkRWEZUbqKDpMmWl8ylSEs7c5W6onDXcG3wGEgbomXyvct3q%2BBMBER8kGtZNV%2FNgFhh0W3dQ%2FrMlUNwiJYFGFFKi2Kpo0gG2WKaf9sRLu2FZhRSSZWcIWEwTtnBKqBRIn3YUeX6RBZ78%2F467GkMM4q7vrBjmfzeUfFb4KCYFsaYo9kMUj4lmJuwwtdn9eXiw1MxHV8tR3JnFFgx%2F6MEUpFbltBSu6XMmt08Zmp11Nb95bNH9V%2FuiszGKeMHie0NAGM6WJtHHckTJvPeeBpEJ%2FWFnAY5MJ5x8hOke7ilX6otb1kPukrcsTprIjtY32DFxtbwF%2FuDhKzC9oQFgvgZSeCEHk%2F5PPhx61TfAzpzDe5dW1BjqzAmlIebNXUR2wFfjO6mTsp7d0qiHbeQNU578moRaf4iodsv69vITaLYrkoTdnqETstc6rGuSHxsc3M3VyekuThQwtEq8AgqNy%2BkPdIPMoWkNPj5wxErUu94pkc9%2FcFM2bMmYECEsLDitfOLzxSBf1Ssz%2FwJJRes49jjEqK9oM%2BV1g%2B%2FKyfMJSw8E6PaaRXV0YPUoOYLenzQLl1uJdplBjXoZmE4AhxGqYeGe0Cbf3fI6vKuJFdGgnwyodmPXJjsFHmk8s2DgZ57d6nHNOBkb6zxE816Cz%2BOXk9QUNm8IYenVs9dS52ye9bRpFQh4Z8ipbtceXsFpbBW8%2FckjIKY2n1b1ajGVtVrGO5kn5DQ61MzVQORXbI7t6itTbfz14qgMBXV%2FEV6r9CJ3kIHAubtQF21MHLM8%3D&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20240809T014403Z&X-Amz-SignedHeaders=host&X-Amz-Expires=300&X-Amz-Credential=ASIA5FTZFLNVFOR6AUNI%2F20240809%2Fus-east-2%2Fs3%2Faws4_request&X-Amz-Signature=5bc3186f017efdc3e8718fa45b541bda3a10ba3a27f299967497a091814e2a4a"; // Replace with the path to your logo
-      if (fs.existsSync(logoPath)) {
-        doc.image(logoPath, 50, 45, { width: 50 });
-      }
+      // Agregar logo en la parte superior centrado
+      const logoURL = "https://storage.googleapis.com/lionseg/logolionseg.png";
+      const logoWidth = 100;
+      doc.image(logoURL, (doc.page.width - logoWidth) / 2, 50, { width: logoWidth });
 
-      // Add invoice title
-      doc.fontSize(20).text('Factura', 110, 57);
- 
-      // Add invoice metadata
+      // Añadir el título de la factura
+      doc.fontSize(20).text('Factura', { align: 'center' });
+
+      // Agregar los metadatos de la factura
       const invoiceDate = new Date();
       const expirationDate = new Date();
-      expirationDate.setDate(invoiceDate.getDate() + 7); // 7 days from the invoice date
+      expirationDate.setDate(invoiceDate.getDate() + 7); // 7 días desde la fecha de la factura
       const invoiceNumber = `INV-${Date.now()}`;
 
       doc.fontSize(10)
-        .text(`Fecha de la Factura: ${invoiceDate.toLocaleDateString()}`, 200, 65, { align: 'right' })
-        .text(`Fecha de Vencimiento: ${expirationDate.toLocaleDateString()}`, 200, 80, { align: 'right' })
-        .text(`Número de Factura: ${invoiceNumber}`, 200, 95, { align: 'right' });
+        .text(`Fecha de la Factura: ${invoiceDate.toLocaleDateString()}`, 200, 150, { align: 'right' })
+        .text(`Fecha de Vencimiento: ${expirationDate.toLocaleDateString()}`, 200, 165, { align: 'right' })
+        .text(`Número de Factura: ${invoiceNumber}`, 200, 180, { align: 'right' });
 
       doc.moveDown(2);
 
-      // Add client details
-      doc.text(`Facturado a:`, 50, 160)
-        .text(`${cliente.name}`, 50, 175)
-        .text(`${cliente.address || 'Dirección no proporcionada'}`, 50, 190)
-        .text(`${cliente.city || ''}, ${cliente.state || ''}, ${cliente.zip || ''}`, 50, 205)
-        .text(`${cliente.country || 'País no proporcionado'}`, 50, 220);
+      // Detalles del cliente
+      doc.text(`Facturado a:`, 50, 200)
+        .text(`${cliente.name}`, 50, 215)
+        .text(`${cliente.address || 'Dirección no proporcionada'}`, 50, 230)
+        .text(`${cliente.city || ''}, ${cliente.state || ''}, ${cliente.zip || ''}`, 50, 245)
+        .text(`${cliente.country || 'País no proporcionado'}`, 50, 260);
 
       doc.moveDown(2);
 
-      // Add service details
+      // Detalles del servicio
       const services = cliente.services.length > 0 ? cliente.services : [];
 
-      // Add table headers with dark gray color
-      const tableTop = 280;
+      // Encabezados de tabla con color gris oscuro
+      const tableTop = 300;
       const itemCodeX = 50;
       const descriptionX = 50;
       const unitPriceX = 450;
@@ -177,7 +176,7 @@ app.post('/api/generar-facturas', async (req, res) => {
         .text('Descripción', descriptionX, tableTop, { bold: true })
         .text('Total', unitPriceX, tableTop, { align: 'right', bold: true });
 
-      // Add table rows with alternating gray colors
+      // Filas de la tabla con colores grises alternos
       services.forEach((item, index) => {
         const y = tableTop + 25 + (index * 25);
         const fillColor = index % 2 === 0 ? '#cccccc' : '#e6e6e6';
@@ -198,14 +197,14 @@ app.post('/api/generar-facturas', async (req, res) => {
       }
       const total = subTotal + recargo;
 
-      // Add totals with added space
+      // Totales
       const totalStartY = tableTop + 25 * services.length + 40;
       doc.text(`Sub Total: $${subTotal.toFixed(2)} ARS`, unitPriceX, totalStartY, { align: 'right' })
         .text(`Recargo por falta de pago a término: $${recargo.toFixed(2)} ARS`, unitPriceX, totalStartY + 35, { align: 'right' })
-        .moveDown(8) // Increased space between recargo and total
+        .moveDown(8) // Espacio adicional entre recargo y total
         .text(`Total: $${total.toFixed(2)} ARS`, unitPriceX, totalStartY + 80, { align: 'right', bold: true });
 
-      // Add payment methods
+      // Métodos de pago
       doc.moveDown(2);
       const paymentTableTop = doc.y;
       const paymentDescriptionX = 50;
@@ -227,13 +226,16 @@ app.post('/api/generar-facturas', async (req, res) => {
         .text('CVU: 0000003100041927153583', paymentAmountX, paymentTableTop + 45)
         .text('Número: 1125071506 (Jorge Luis Castillo)', paymentAmountX, paymentTableTop + 60);
 
-      // Add custom message at the bottom
+      // Mensaje personalizado
       const customMessageY = doc.y + 20;
       doc.text('Puedes transferir a la cuenta de tu preferencia y debes enviar el comprobante al siguiente número', 50, customMessageY);
 
-      doc.end();
+      // Agregar QR en la parte inferior centrado
+      const qrImageURL = "https://storage.googleapis.com/lionseg/QR_43096512.pdf%20-%20Google%20Chrome%208_10_2024%2012_40_12%20PM.png";
+      const qrImageWidth = 100;
+      doc.image(qrImageURL, (doc.page.width - qrImageWidth) / 2, doc.page.height - 150, { width: qrImageWidth });
 
-        
+      doc.end();
 
       const invoice = {
         fileName,
@@ -271,7 +273,7 @@ app.post('/api/generar-facturas', async (req, res) => {
         <p style="color: #666;">Por favor, realiza el pago antes del <strong>${expirationDate.toLocaleDateString()}</strong> para evitar recargos.</p>
         <p style="color: #666;">Gracias por confiar en nuestros servicios.</p>
         <div style="border-top: 1px solid #ddd; margin-top: 20px; padding-top: 20px; text-align: center;">
-          <p style="color: #666;">Sistema desarrollado por <a href="https://www.flipwebco.com" style="color: #1a73e8; text-decoration: none;"Flipwebco</a></p>
+          <p style="color: #666;">Sistema desarrollado por <a href="https://www.flipwebco.com" style="color: #1a73e8; text-decoration: none;">Flipwebco</a></p>
         </div>
       </div>
       `;
@@ -281,7 +283,7 @@ app.post('/api/generar-facturas', async (req, res) => {
         to: cliente.email,
         subject: 'Factura',
         text: 'Se adjunta la factura.',
-        html:htmlContent,
+        html: htmlContent,
         attachments: [{ filename: fileName, path: `./public/facturas/${fileName}` }],
       });
     }
