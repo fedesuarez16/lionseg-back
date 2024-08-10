@@ -308,11 +308,13 @@ app.put('/api/clientes/:clienteId/invoiceLinks/:invoiceLinkId/state', async (req
             <img src="https://storage.googleapis.com/lionseg/logolionseg.png" alt="Logo de tu empresa" style="width: 150px;"/>
           </div>
           <h3 style="color: #333;">Estimado/a ${cliente.name}</h3>
-          <p>Su factura con número <strong>FAC-${shortInvoiceId}</strong> ha sido pagada.</p>
-          <p><strong>Servicio:</strong> ${servicioPagado} y domicilio ${dominioPagado}</p>
+          <p> Le informamos que su factura con número <strong>FAC-${shortInvoiceId}</strong> ha sido pagada.</p>
+          <p><strong>Servicio:</strong> ${servicioPagado} </p>
+          <p><strong>Domicilio:</strong>${dominioPagado}</p>
+
           <p><strong>Total pagado:</strong> $${invoiceLink.total.toFixed(2)}</p>
           <p>Gracias por su pago.</p>
-          <p>Saludos,<br/>Lionseg</p>
+          <p>Saludos,<br/>Administracion Lionseg</p>
           <hr style="margin: 40px 0; border: 0; border-top: 1px solid #ddd;"/>
           <p style="text-align: center; font-size: 14px; color: #666;">Sistema desarrollado por <a href="https://flipwebco.com" style="color: #007bff; text-decoration: none;">FlipWebCo</a></p>
         </div>
