@@ -129,41 +129,42 @@ app.post('/api/generar-facturas', async (req, res) => {
 
       doc.pipe(fs.createWriteStream(`public/facturas/${fileName}`));
 
-      // Agregar logo en la parte superior centrado
-      const logoURL = "https://storage.googleapis.com/lionseg/logolionseg.png";
-      const logoWidth = 100;
-      doc.image(logoURL, (doc.page.width - logoWidth) / 2, 50, { width: logoWidth });
+      // Add logo
+      const logoPath = "https://storage.googleapis.com/lionseg/logolionseg.png"; // Replace with the path to your logo
+      if (fs.existsSync(logoPath)) {
+        doc.image(logoPath, 50, 45, { width: 50 });
+      }
 
-      // Añadir el título de la factura
-      doc.fontSize(20).text('Factura', { align: 'center' });
-
-      // Agregar los metadatos de la factura
+      // Add invoice title
+      doc.fontSize(20).text('Factura', 110, 57);
+ 
+      // Add invoice metadata
       const invoiceDate = new Date();
       const expirationDate = new Date();
-      expirationDate.setDate(invoiceDate.getDate() + 7); // 7 días desde la fecha de la factura
+      expirationDate.setDate(invoiceDate.getDate() + 7); // 7 days from the invoice date
       const invoiceNumber = `INV-${Date.now()}`;
 
       doc.fontSize(10)
-        .text(`Fecha de la Factura: ${invoiceDate.toLocaleDateString()}`, 200, 150, { align: 'right' })
-        .text(`Fecha de Vencimiento: ${expirationDate.toLocaleDateString()}`, 200, 165, { align: 'right' })
-        .text(`Número de Factura: ${invoiceNumber}`, 200, 180, { align: 'right' });
+        .text(`Fecha de la Factura: ${invoiceDate.toLocaleDateString()}`, 200, 65, { align: 'right' })
+        .text(`Fecha de Vencimiento: ${expirationDate.toLocaleDateString()}`, 200, 80, { align: 'right' })
+        .text(`Número de Factura: ${invoiceNumber}`, 200, 95, { align: 'right' });
 
       doc.moveDown(2);
 
-      // Detalles del cliente
-      doc.text(`Facturado a:`, 50, 200)
-        .text(`${cliente.name}`, 50, 215)
-        .text(`${cliente.address || 'Dirección no proporcionada'}`, 50, 230)
-        .text(`${cliente.city || ''}, ${cliente.state || ''}, ${cliente.zip || ''}`, 50, 245)
-        .text(`${cliente.country || 'País no proporcionado'}`, 50, 260);
+      // Add client details
+      doc.text(`Facturado a:`, 50, 160)
+        .text(`${cliente.name}`, 50, 175)
+        .text(`${cliente.address || 'Dirección no proporcionada'}`, 50, 190)
+        .text(`${cliente.city || ''}, ${cliente.state || ''}, ${cliente.zip || ''}`, 50, 205)
+        .text(`${cliente.country || 'País no proporcionado'}`, 50, 220);
 
       doc.moveDown(2);
 
-      // Detalles del servicio
+      // Add service details
       const services = cliente.services.length > 0 ? cliente.services : [];
 
-      // Encabezados de tabla con color gris oscuro
-      const tableTop = 300;
+      // Add table headers with dark gray color
+      const tableTop = 280;
       const itemCodeX = 50;
       const descriptionX = 50;
       const unitPriceX = 450;
@@ -176,7 +177,7 @@ app.post('/api/generar-facturas', async (req, res) => {
         .text('Descripción', descriptionX, tableTop, { bold: true })
         .text('Total', unitPriceX, tableTop, { align: 'right', bold: true });
 
-      // Filas de la tabla con colores grises alternos
+      // Add table rows with alternating gray colors
       services.forEach((item, index) => {
         const y = tableTop + 25 + (index * 25);
         const fillColor = index % 2 === 0 ? '#cccccc' : '#e6e6e6';
@@ -197,14 +198,14 @@ app.post('/api/generar-facturas', async (req, res) => {
       }
       const total = subTotal + recargo;
 
-      // Totales
+      // Add totals with added space
       const totalStartY = tableTop + 25 * services.length + 40;
       doc.text(`Sub Total: $${subTotal.toFixed(2)} ARS`, unitPriceX, totalStartY, { align: 'right' })
         .text(`Recargo por falta de pago a término: $${recargo.toFixed(2)} ARS`, unitPriceX, totalStartY + 35, { align: 'right' })
-        .moveDown(8) // Espacio adicional entre recargo y total
+        .moveDown(8) // Increased space between recargo and total
         .text(`Total: $${total.toFixed(2)} ARS`, unitPriceX, totalStartY + 80, { align: 'right', bold: true });
 
-      // Métodos de pago
+      // Add payment methods
       doc.moveDown(2);
       const paymentTableTop = doc.y;
       const paymentDescriptionX = 50;
@@ -226,7 +227,7 @@ app.post('/api/generar-facturas', async (req, res) => {
         .text('CVU: 0000003100041927153583', paymentAmountX, paymentTableTop + 45)
         .text('Número: 1125071506 (Jorge Luis Castillo)', paymentAmountX, paymentTableTop + 60);
 
-      // Mensaje personalizado
+      // Add custom message at the bottom
       const customMessageY = doc.y + 20;
       doc.text('Puedes transferir a la cuenta de tu preferencia y debes enviar el comprobante al siguiente número', 50, customMessageY);
 
@@ -235,7 +236,10 @@ app.post('/api/generar-facturas', async (req, res) => {
       const qrImageWidth = 100;
       doc.image(qrImageURL, (doc.page.width - qrImageWidth) / 2, doc.page.height - 150, { width: qrImageWidth });
 
+
       doc.end();
+
+        
 
       const invoice = {
         fileName,
@@ -283,7 +287,7 @@ app.post('/api/generar-facturas', async (req, res) => {
         to: cliente.email,
         subject: 'Factura',
         text: 'Se adjunta la factura.',
-        html: htmlContent,
+        html:htmlContent,
         attachments: [{ filename: fileName, path: `./public/facturas/${fileName}` }],
       });
     }
