@@ -269,7 +269,9 @@ app.post('/api/generar-facturas', async (req, res) => {
           <li>MercadoPago: Alias lionseg.mp</li>
           <li>Efectivo: En nuestra oficina</li>
         </ul>
-        <p style="color: #666;">Por favor, realiza el pago antes del <strong>${expirationDate.toLocaleDateString()}</strong> para evitar recargos.</p>
+        <p style="color: #666;">Por favor, realiza el pago antes del <strong>${expirationDate.toLocaleDateString()}</strong> para evitar recargos .</p>
+          <p style="color: #666;">Enviar comprobante de pago al siguiente numero +54 9 11 3507-2413. El pago no sera procesado hasta recibir el comprobante</p>
+
         <div style="text-align: center; margin-top: 20px;">
           <img src="https://storage.googleapis.com/lionseg/QR_43096512.pdf.png" alt="QR Code" style="width: 150px;">
         </div>
