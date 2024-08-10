@@ -255,7 +255,7 @@ app.post('/api/generar-facturas', async (req, res) => {
       enlacesFacturas.push(facturaLink);
 
       const htmlContent = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd;">
+      <div style="font-family: Arial, sans-serif; height:auto; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd;">
         <div style="text-align: center;">
           <img src="https://storage.googleapis.com/lionseg/logolionseg.png" alt="Logo" style="width: 100px;">
         </div>
