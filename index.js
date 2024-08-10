@@ -261,13 +261,12 @@ app.post('/api/generar-facturas', async (req, res) => {
         </div>
         <h2 style="text-align: center; color: #333;">Factura Generada</h2>
         <p style="color: #666;">Estimado ${cliente.name},</p>
-        <p style="color: #666;">Te informamos que se ha generado una nueva factura. Puedes descargarla desde el siguiente enlace:</p>
+        <p style="color: #666;">Te informamos que se ha generado una nueva factura. Puedes descargarla desde el enlace adjunto:</p>
         <p style="color: #666;">Total a pagar: <strong>$${total.toFixed(2)} ARS</strong></p>
         <p style="color: #666;">Métodos de pago:</p>
         <ul style="color: #666;">
-          <li>Transferencia Bancaria: CBU 00000031000318291812</li>
-          <li>MercadoPago: Alias miempresa.mp</li>
-          <li>Tarjetas de Crédito/Débito: Visa, MasterCard, Amex</li>
+          <li>Transferencia Bancaria: CBU 0340040108409895361003</li>
+          <li>MercadoPago: Alias lionseg.mp</li>
           <li>Efectivo: En nuestra oficina</li>
         </ul>
         <p style="color: #666;">Por favor, realiza el pago antes del <strong>${expirationDate.toLocaleDateString()}</strong> para evitar recargos.</p>
