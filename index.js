@@ -231,11 +231,7 @@ app.post('/api/generar-facturas', async (req, res) => {
       const customMessageY = doc.y + 20;
       doc.text('Puedes transferir a la cuenta de tu preferencia y debes enviar el comprobante al siguiente número', 50, customMessageY);
 
-      // Agregar QR en la parte inferior centrado
-      const qrImageURL = "https://storage.googleapis.com/lionseg/QR_43096512.pdf%20-%20Google%20Chrome%208_10_2024%2012_40_12%20PM.png";
-      const qrImageWidth = 100;
-      doc.image(qrImageURL, (doc.page.width - qrImageWidth) / 2, doc.page.height - 150, { width: qrImageWidth });
-
+     
 
       doc.end();
 
