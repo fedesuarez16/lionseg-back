@@ -233,26 +233,7 @@ app.post('/api/generar-facturas', async (req, res) => {
 
       doc.end();
 
-          let emailSubject = '';
-          let emailHtml = ''
-
-      emailSubject = 'Factura Pagada';
-      emailHtml = `
-        <div style="font-family: Arial, sans-serif; font-size: 16px; color: #333; padding: 20px; border: 1px solid #ddd; border-radius: 8px; max-width: 600px; margin: auto;">
-          <div style="text-align: center; margin-bottom: 20px;">
-            <img src="https://storage.googleapis.com/lionseg/logolionseg.png" alt="Logo de tu empresa" style="width: 150px;"/>
-          </div>
-          <h3 style="color: #333;">Estimado/a ${cliente.name}</h3>
-          <p> Le informamos que su factura con número <strong>FAC-${shortInvoiceId}</strong> ha sido pagada.</p>
-         
-
-          <p><strong>Total pagado:</strong> $${invoiceLink.total.toFixed(2)}</p>
-          <p>Gracias por su pago.</p>
-          <p>Saludos,<br/>Administracion Lionseg</p>
-          <hr style="margin: 40px 0; border: 0; border-top: 1px solid #ddd;"/>
-          <p style="text-align: center; font-size: 14px; color: #666;">Sistema desarrollado por <a href="https://flipwebco.com" style="color: #007bff; text-decoration: none;">FlipWebCo</a></p>
-        </div>
-      `;
+        
 
       const invoice = {
         fileName,
@@ -271,13 +252,38 @@ app.post('/api/generar-facturas', async (req, res) => {
       const facturaLink = `https://localhost:3000/facturas/${fileName}`; // Cambiar a HTTPS si es necesario
       enlacesFacturas.push(facturaLink);
 
+      const htmlContent = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd;">
+        <div style="text-align: center;">
+          <img src="https://storage.googleapis.com/lionseg/logolionseg.png" alt="Logo" style="width: 100px;">
+        </div>
+        <h2 style="text-align: center; color: #333;">Factura Generada</h2>
+        <p style="color: #666;">Estimado ${cliente.name},</p>
+        <p style="color: #666;">Te informamos que se ha generado una nueva factura. Puedes descargarla desde el siguiente enlace:</p>
+        
+        <p style="color: #666;">Total a pagar: <strong>$${total.toFixed(2)} ARS</strong></p>
+        <p style="color: #666;">Métodos de pago:</p>
+        <ul style="color: #666;">
+          <li>Transferencia Bancaria: CBU 00000031000318291812</li>
+          <li>MercadoPago: Alias miempresa.mp</li>
+          <li>Tarjetas de Crédito/Débito: Visa, MasterCard, Amex</li>
+          <li>Efectivo: En nuestra oficina</li>
+        </ul>
+        <p style="color: #666;">Por favor, realiza el pago antes del <strong>${expirationDate.toLocaleDateString()}</strong> para evitar recargos.</p>
+        <p style="color: #666;">Gracias por confiar en nuestros servicios.</p>
+        <div style="border-top: 1px solid #ddd; margin-top: 20px; padding-top: 20px; text-align: center;">
+          <p style="color: #666;">Para más información, visita <a href="https://www.flipweb.co" style="color: #1a73e8; text-decoration: none;">www.flipweb.co</a></p>
+        </div>
+      </div>
+      `;
+
       await transporter.sendMail({
         from: 'coflipweb@gmail.com',
         to: cliente.email,
         subject: 'Factura',
         text: 'Se adjunta la factura.',
+        html:htmlContent,
         attachments: [{ filename: fileName, path: `./public/facturas/${fileName}` }],
-        html:emailHtml
       });
     }
 
