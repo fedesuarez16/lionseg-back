@@ -260,7 +260,6 @@ app.post('/api/generar-facturas', async (req, res) => {
         <h2 style="text-align: center; color: #333;">Factura Generada</h2>
         <p style="color: #666;">Estimado ${cliente.name},</p>
         <p style="color: #666;">Te informamos que se ha generado una nueva factura. Puedes descargarla desde el siguiente enlace:</p>
-        
         <p style="color: #666;">Total a pagar: <strong>$${total.toFixed(2)} ARS</strong></p>
         <p style="color: #666;">Métodos de pago:</p>
         <ul style="color: #666;">
@@ -272,7 +271,7 @@ app.post('/api/generar-facturas', async (req, res) => {
         <p style="color: #666;">Por favor, realiza el pago antes del <strong>${expirationDate.toLocaleDateString()}</strong> para evitar recargos.</p>
         <p style="color: #666;">Gracias por confiar en nuestros servicios.</p>
         <div style="border-top: 1px solid #ddd; margin-top: 20px; padding-top: 20px; text-align: center;">
-          <p style="color: #666;">Para más información, visita <a href="https://www.flipweb.co" style="color: #1a73e8; text-decoration: none;">www.flipweb.co</a></p>
+          <p style="color: #666;">Sistema desarrollado por <a href="https://www.flipwebco.com" style="color: #1a73e8; text-decoration: none;"Flipwebco</a></p>
         </div>
       </div>
       `;
@@ -331,40 +330,43 @@ app.put('/api/clientes/:clienteId/invoiceLinks/:invoiceLinkId/state', async (req
       
       emailSubject = 'Factura Pagada';
       emailHtml = `
-        <div style="font-family: Arial, sans-serif; font-size: 16px; color: #333; padding: 20px; border: 1px solid #ddd; border-radius: 8px; max-width: 600px; margin: auto;">
-          <div style="text-align: center; margin-bottom: 20px;">
-            <img src="https://storage.googleapis.com/lionseg/logolionseg.png" alt="Logo de tu empresa" style="width: 150px;"/>
-          </div>
-          <h3 style="color: #333;">Estimado/a ${cliente.name}</h3>
-          <p> Le informamos que su factura con número <strong>FAC-${shortInvoiceId}</strong> ha sido pagada.</p>
-          <p><strong>Servicio:</strong> ${servicioPagado} </p>
-          <p><strong>Domicilio:</strong>${dominioPagado}</p>
-
-          <p><strong>Total pagado:</strong> $${invoiceLink.total.toFixed(2)}</p>
-          <p>Gracias por su pago.</p>
-          <p>Saludos,<br/>Administracion Lionseg</p>
-          <hr style="margin: 40px 0; border: 0; border-top: 1px solid #ddd;"/>
-          <p style="text-align: center; font-size: 14px; color: #666;">Sistema desarrollado por <a href="https://flipwebco.com" style="color: #007bff; text-decoration: none;">FlipWebCo</a></p>
-        </div>
-      `;
+     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd;">
+    <div style="text-align: center;">
+      <img src="https://storage.googleapis.com/lionseg/logolionseg.png" alt="Logo de tu empresa" style="width: 100px;">
+    </div>
+    <h2 style="text-align: center; color: #333;">Factura Pagada</h2>
+    <p style="color: #666;">Estimado/a ${cliente.name},</p>
+    <p style="color: #666;">Le informamos que su factura con número <strong>FAC-${shortInvoiceId}</strong> ha sido pagada.</p>
+    <p style="color: #666;"><strong>Servicio:</strong> ${servicioPagado}</p>
+    <p style="color: #666;"><strong>Domicilio:</strong> ${dominioPagado}</p>
+    <p style="color: #666;"><strong>Total pagado:</strong> $${invoiceLink.total.toFixed(2)}</p>
+    <p style="color: #666;">Gracias por su pago.</p>
+    <p style="color: #666;">Saludos,<br/>Administracion Lionseg</p>
+    <div style="border-top: 1px solid #ddd; margin-top: 20px; padding-top: 20px; text-align: center;">
+      <p style="color: #666;">Sistema desarrollado por <a href="https://flipwebco.com" style="color: #1a73e8; text-decoration: none;">FlipWebCo</a></p>
+    </div>
+  </div>
+`;
     } else if (state === 'overdue') {
       const shortInvoiceId = invoiceLink.id.slice(-3); // Obtiene los últimos 3 caracteres del ID
 
       emailSubject = 'Factura Vencida';
       emailHtml = `
-        <div style="font-family: Arial, sans-serif; font-size: 16px; color: #333; padding: 20px; border: 1px solid #ddd; border-radius: 8px; max-width: 600px; margin: auto;">
-          <div style="text-align: center; margin-bottom: 20px;">
-            <img src="https://storage.googleapis.com/lionseg/logolionseg.png" alt="Logo de tu empresa" style="width: 150px;"/>
-          </div>
-          <h3 style="color: #333;">Estimado/a ${cliente.name}</h3>
-          <p>Su factura con número <strong>FAC-${shortInvoiceId}</strong> ha vencido.</p>
-          <p>Por favor, realice el pago lo antes posible, de lo contrario su servicio se suspenderá dentro de las 72hs.</p>
-          <p><strong>Total adeudado:</strong> $${invoiceLink.total.toFixed(2)}</p>
-          <p>Saludos,<br/>Administracion Lionseg</p>
-          <hr style="margin: 40px 0; border: 0; border-top: 1px solid #ddd;"/>
-          <p style="text-align: center; font-size: 14px; color: #666;">Sistema desarrollado por <a href="https://flipwebco.com" style="color: #007bff; text-decoration: none;">FlipWebCo</a></p>
-        </div>
-      `;
+       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd;">
+    <div style="text-align: center;">
+      <img src="https://storage.googleapis.com/lionseg/logolionseg.png" alt="Logo de tu empresa" style="width: 100px;">
+    </div>
+    <h2 style="text-align: center; color: #333;">Factura Vencida</h2>
+    <p style="color: #666;">Estimado/a ${cliente.name},</p>
+    <p style="color: #666;">Su factura con número <strong>FAC-${shortInvoiceId}</strong> ha vencido.</p>
+    <p style="color: #666;">Por favor, realice el pago lo antes posible, de lo contrario su servicio se suspenderá dentro de las 72hs.</p>
+    <p style="color: #666;"><strong>Total adeudado:</strong> $${invoiceLink.total.toFixed(2)}</p>
+    <p style="color: #666;">Saludos,<br/>Administracion Lionseg</p>
+    <div style="border-top: 1px solid #ddd; margin-top: 20px; padding-top: 20px; text-align: center;">
+      <p style="color: #666;">Sistema desarrollado por <a href="https://flipwebco.com" style="color: #1a73e8; text-decoration: none;">FlipWebCo</a></p>
+    </div>
+  </div>
+`;
     }
 
     if (emailSubject && emailHtml) {
