@@ -130,7 +130,7 @@ app.post('/api/generar-facturas', async (req, res) => {
       doc.pipe(fs.createWriteStream(`public/facturas/${fileName}`));
 
       // Add logo
-      const logoPath = "server\logo.png"; // Replace with the path to your logo
+      const logoPath = "./logo.png"; // Replace with the path to your logo
       if (fs.existsSync(logoPath)) {
         doc.image(logoPath, 50, 45, { width: 50 });
       }
