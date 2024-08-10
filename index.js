@@ -130,7 +130,7 @@ app.post('/api/generar-facturas', async (req, res) => {
       doc.pipe(fs.createWriteStream(`public/facturas/${fileName}`));
 
       // Add logo
-      const logoPath = "https://storage.googleapis.com/lionseg/logolionseg.png"; // Replace with the path to your logo
+      const logoPath = "server\logo.png"; // Replace with the path to your logo
       if (fs.existsSync(logoPath)) {
         doc.image(logoPath, 50, 45, { width: 50 });
       }
@@ -527,8 +527,8 @@ app.post('/api/clientes/:clientId/invoices', async (req, res) => {
       .text('Número: 1125071506 (Jorge Luis Castillo)', paymentAmountX, paymentTableTop + 60);
 
     // Add custom message at the bottom
-    const customMessageY = doc.y + 20;
-    doc.text('Puedes transferir a la cuenta de tu preferencia y debes enviar el comprobante al siguiente número', 50, customMessageY);
+    const customMessageY = doc.y + 40;
+    doc.text('Puedes transferir a la cuenta de tu preferencia y debes enviar el comprobante al siguiente número +54 9 11 3507-2413', 50, customMessageY);
 
     doc.end();
     const htmlContent = `
