@@ -303,31 +303,37 @@ app.put('/api/clientes/:clienteId/invoiceLinks/:invoiceLinkId/state', async (req
       
       emailSubject = 'Factura Pagada';
       emailHtml = `
-       <div style="font-family: Arial, sans-serif; font-size: 16px; color: #333;">
-        <img src="https://storage.googleapis.com/lionseg/logolionseg.png" alt="Logo de tu empresa" style="width: 150px;"/>
-        <h2>Estimado/a ${cliente.name},</h2>
-       <p>Su factura con número <strong>FAC-${shortInvoiceId}</strong> ha sido pagada.</p>
-        <p style="font-family: Arial, sans-serif; font-size: 14px;><strong>Servicio:</strong> ${servicioPagado} y domicilio ${dominioPagado} </p>
-        <p style="font-family: Arial, sans-serif; font-size: 14px;><strong>Total pagado:</strong> $${invoiceLink.total.toFixed(2)}</p>
-        <p>Gracias por su pago.</p>
-        <p>Saludos,<br/>Lionseg</p>
-      </div>
-      `;
-    } else if (state === 'overdue') {
-      const shortInvoiceId = invoiceLink.id.slice(-3); // Obtiene los últimos 3 caracteres del ID
-
-      emailSubject = 'Factura Vencida';
-      emailHtml = `
-       <div style="font-family: Arial, sans-serif; font-size: 16px; color: #333;">
-        <img src="https://storage.googleapis.com/lionseg/logolionseg.png" alt="Logo de tu empresa" style="width: 150px;"/>
-          <h2>Estimado/a ${cliente.name},</h2>
-          <p>Su factura con número <strong>FAC-${shortInvoiceId}</strong> ha vencido.</p>
-          <p>Por favor, realice el pago lo antes posible, de lo contrario Su sevicio se supenderá dentro de las 72hs.</p>
-         <p><strong>Total pagado:</strong> $${invoiceLink.total.toFixed(2)}</p>
+        <div style="font-family: Arial, sans-serif; font-size: 16px; color: #333; line-height: 1.6;">
+          <img src="https://storage.googleapis.com/lionseg/logolionseg.png" alt="Logo de tu empresa" style="width: 150px; margin-bottom: 20px;"/>
+          <h3 style="color: #0056b3; margin-bottom: 20px;">Estimado/a ${cliente.name},</h3>
+          <p>Su factura con número <strong>FAC-${shortInvoiceId}</strong> ha sido pagada.</p>
+          <p><strong>Servicio:</strong> ${servicioPagado} y domicilio ${dominioPagado}</p>
+          <p><strong>Total pagado:</strong> $${invoiceLink.total.toFixed(2)}</p>
+          <p>Gracias por su pago.</p>
           <p>Saludos,<br/>Lionseg</p>
+          <hr style="border: 0; border-top: 1px solid #ccc; margin: 40px 0;">
+          <p style="text-align: center; font-size: 14px; color: #666;">
+            Sistema desarrollado por <a href="https://flipwebco.com" style="color: #0056b3; text-decoration: none;">FlipWebCo</a>
+          </p>
         </div>
       `;
-    }
+      
+      emailSubject = 'Factura Vencida';
+      emailHtml = `
+        <div style="font-family: Arial, sans-serif; font-size: 16px; color: #333; line-height: 1.6;">
+          <img src="https://storage.googleapis.com/lionseg/logolionseg.png" alt="Logo de tu empresa" style="width: 150px; margin-bottom: 20px;"/>
+          <h3 style="color: #d9534f; margin-bottom: 20px;">Estimado/a ${cliente.name},</h3>
+          <p>Su factura con número <strong>FAC-${shortInvoiceId}</strong> ha vencido.</p>
+          <p>Por favor, realice el pago lo antes posible, de lo contrario su servicio se suspenderá dentro de las 72 horas.</p>
+          <p><strong>Total pagado:</strong> $${invoiceLink.total.toFixed(2)}</p>
+          <p>Saludos,<br/>Lionseg</p>
+          <hr style="border: 0; border-top: 1px solid #ccc; margin: 40px 0;">
+          <p style="text-align: center; font-size: 14px; color: #666;">
+            Sistema desarrollado por <a href="https://flipwebco.com" style="color: #d9534f; text-decoration: none;">FlipWebCo</a>
+          </p>
+        </div>
+      `;
+      
 
     if (emailSubject && emailHtml) {
       await transporter.sendMail({
