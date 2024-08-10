@@ -233,6 +233,27 @@ app.post('/api/generar-facturas', async (req, res) => {
 
       doc.end();
 
+          let emailSubject = '';
+          let emailHtml = ''
+
+      emailSubject = 'Factura Pagada';
+      emailHtml = `
+        <div style="font-family: Arial, sans-serif; font-size: 16px; color: #333; padding: 20px; border: 1px solid #ddd; border-radius: 8px; max-width: 600px; margin: auto;">
+          <div style="text-align: center; margin-bottom: 20px;">
+            <img src="https://storage.googleapis.com/lionseg/logolionseg.png" alt="Logo de tu empresa" style="width: 150px;"/>
+          </div>
+          <h3 style="color: #333;">Estimado/a ${cliente.name}</h3>
+          <p> Le informamos que su factura con número <strong>FAC-${shortInvoiceId}</strong> ha sido pagada.</p>
+         
+
+          <p><strong>Total pagado:</strong> $${invoiceLink.total.toFixed(2)}</p>
+          <p>Gracias por su pago.</p>
+          <p>Saludos,<br/>Administracion Lionseg</p>
+          <hr style="margin: 40px 0; border: 0; border-top: 1px solid #ddd;"/>
+          <p style="text-align: center; font-size: 14px; color: #666;">Sistema desarrollado por <a href="https://flipwebco.com" style="color: #007bff; text-decoration: none;">FlipWebCo</a></p>
+        </div>
+      `;
+
       const invoice = {
         fileName,
         state: 'pending',
@@ -256,6 +277,7 @@ app.post('/api/generar-facturas', async (req, res) => {
         subject: 'Factura',
         text: 'Se adjunta la factura.',
         attachments: [{ filename: fileName, path: `./public/facturas/${fileName}` }],
+        html:emailHtml
       });
     }
 
@@ -332,7 +354,7 @@ app.put('/api/clientes/:clienteId/invoiceLinks/:invoiceLinkId/state', async (req
           <p>Su factura con número <strong>FAC-${shortInvoiceId}</strong> ha vencido.</p>
           <p>Por favor, realice el pago lo antes posible, de lo contrario su servicio se suspenderá dentro de las 72hs.</p>
           <p><strong>Total adeudado:</strong> $${invoiceLink.total.toFixed(2)}</p>
-          <p>Saludos,<br/>Lionseg</p>
+          <p>Saludos,<br/>Administracion Lionseg</p>
           <hr style="margin: 40px 0; border: 0; border-top: 1px solid #ddd;"/>
           <p style="text-align: center; font-size: 14px; color: #666;">Sistema desarrollado por <a href="https://flipwebco.com" style="color: #007bff; text-decoration: none;">FlipWebCo</a></p>
         </div>
