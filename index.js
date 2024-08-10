@@ -271,7 +271,7 @@ app.post('/api/generar-facturas', async (req, res) => {
         </ul>
         <p style="color: #666;">Por favor, realiza el pago antes del <strong>${expirationDate.toLocaleDateString()}</strong> para evitar recargos.</p>
         <div style="text-align: center; margin-top: 20px;">
-          <img src="https://storage.googleapis.com/lionseg/QR_43096512.pdf%20-%20Google%20Chrome%208_10_2024%2012_40_12%20PM.png" alt="QR Code" style="width: 150px;">
+          <img src="https://storage.googleapis.com/lionseg/QR_43096512.pdf.png" alt="QR Code" style="width: 150px;">
         </div>
         <p style="color: #666;">Gracias por confiar en nuestros servicios.</p>
         <div style="border-top: 1px solid #ddd; margin-top: 20px; padding-top: 20px; text-align: center;">
