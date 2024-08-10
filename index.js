@@ -229,7 +229,7 @@ app.post('/api/generar-facturas', async (req, res) => {
 
       // Add custom message at the bottom
       const customMessageY = doc.y + 20;
-      doc.text('Puedes transferir a la cuenta de tu preferencia y debes enviar el comprobante al siguiente número', 50, customMessageY);
+      doc.text('Puedes transferir a la cuenta de tu preferencia y debes enviar el comprobante al siguiente número +54 9 11 3507-2413', 50, customMessageY);
 
      
 
@@ -267,7 +267,7 @@ app.post('/api/generar-facturas', async (req, res) => {
         <ul style="color: #666;">
           <li>Transferencia Bancaria: CBU 0340040108409895361003</li>
           <li>MercadoPago: Alias lionseg.mp</li>
-          <li>Efectivo: En nuestra oficina</li>
+          <li>Efectivo</li>
         </ul>
         <p style="color: #666;">Por favor, realiza el pago antes del <strong>${expirationDate.toLocaleDateString()}</strong> para evitar recargos .</p>
           <p style="color: #666;">Enviar comprobante de pago al siguiente numero +54 9 11 3507-2413. El pago no sera procesado hasta recibir el comprobante</p>
@@ -531,6 +531,33 @@ app.post('/api/clientes/:clientId/invoices', async (req, res) => {
     doc.text('Puedes transferir a la cuenta de tu preferencia y debes enviar el comprobante al siguiente número', 50, customMessageY);
 
     doc.end();
+    const htmlContent = `
+    <div style="font-family: Arial, sans-serif; height:auto; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd;">
+      <div style="text-align: center;">
+        <img src="https://storage.googleapis.com/lionseg/logolionseg.png" alt="Logo" style="width: 100px;">
+      </div>
+      <h2 style="text-align: center; color: #333;">Factura Generada</h2>
+      <p style="color: #666;">Estimado ${cliente.name},</p>
+      <p style="color: #666;">Te informamos que se ha generado una nueva factura. Puedes descargarla desde el enlace adjunto:</p>
+      <p style="color: #666;">Total a pagar: <strong>$${total.toFixed(2)} ARS</strong></p>
+      <p style="color: #666;">Métodos de pago:</p>
+      <ul style="color: #666;">
+        <li>Transferencia Bancaria: CBU 0340040108409895361003</li>
+        <li>MercadoPago: Alias lionseg.mp</li>
+        <li>Efectivo</li>
+      </ul>
+      <p style="color: #666;">Por favor, realiza el pago antes del <strong>${expirationDate.toLocaleDateString()}</strong> para evitar recargos .</p>
+        <p style="color: #666;">Enviar comprobante de pago al siguiente numero +54 9 11 3507-2413. El pago no sera procesado hasta recibir el comprobante</p>
+
+      <div style="text-align: center; margin-top: 20px;">
+        <img src="https://storage.googleapis.com/lionseg/QR_43096512.pdf.png" alt="QR Code" style="width: 150px;">
+      </div>
+      <p style="color: #666;">Gracias por confiar en nuestros servicios.</p>
+      <div style="border-top: 1px solid #ddd; margin-top: 20px; padding-top: 20px; text-align: center;">
+        <p style="color: #666;">Sistema desarrollado por <a href="https://www.flipwebco.com" style="color: #1a73e8; text-decoration: none;">Flipwebco</a></p>
+      </div>
+    </div>
+  `;
 
     // Crear una nueva factura
     const nuevaFactura = {
@@ -556,6 +583,7 @@ app.post('/api/clientes/:clientId/invoices', async (req, res) => {
       to: cliente.email,
       subject: 'Factura',
       text: 'Se adjunta la factura.',
+      html:htmlContent,
       attachments: [{ filename: fileName, path: `./public/facturas/${fileName}` }],
     });
 
