@@ -563,7 +563,7 @@ app.post('/api/clientes/:clientId/invoices', async (req, res) => {
 
     const qrPath = "./qr.png"; // Replace with the path to your logo
       if (fs.existsSync(qrPath)) {
-        doc.image(qrPath, 350, 545, { width: 100 });
+        doc.image(qrPath, 250, 545, { width: 100 });
       }
       
     doc.end();
