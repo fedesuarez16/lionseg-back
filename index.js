@@ -103,7 +103,38 @@
     }
   });
 
- 
+
+ // Eliminar una factura por ID
+app.delete('/api/clientes/:clienteId/invoiceLinks/:invoiceLinkId', async (req, res) => {
+    const { clienteId, invoiceLinkId } = req.params;
+
+    try {
+        // Encuentra al cliente por ID
+        const cliente = await Cliente.findById(clienteId);
+
+        if (!cliente) {
+            return res.status(404).json({ message: 'Cliente no encontrado' });
+        }
+
+        // Encuentra la factura en los invoiceLinks del cliente y la elimina
+        const invoiceIndex = cliente.invoiceLinks.findIndex(link => link._id.toString() === invoiceLinkId);
+
+        if (invoiceIndex === -1) {
+            return res.status(404).json({ message: 'Factura no encontrada' });
+        }
+
+        cliente.invoiceLinks.splice(invoiceIndex, 1);
+
+        // Guarda los cambios en la base de datos
+        await cliente.save();
+
+        res.status(200).json({ message: 'Factura eliminada exitosamente' });
+    } catch (error) {
+        console.error('Error al eliminar la factura:', error);
+        res.status(500).json({ message: 'Error interno del servidor' });
+    }
+});
+
 
   
 // Generate invoices for all active clients
