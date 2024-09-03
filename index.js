@@ -561,9 +561,10 @@ app.post('/api/clientes/:clientId/invoices', async (req, res) => {
     const customMessageY = doc.y + 40;
     doc.text('Puedes transferir a la cuenta de tu preferencia y debes enviar el comprobante al siguiente número +54 9 11 3507-2413', 50, customMessageY);
 
-   
-        doc.image("https://storage.googleapis.com/lionseg/logolionseg.png", 50, 45, { width: 100 });
-      
+    const qrPath = "./qr.png"; // Replace with the path to your logo
+      if (fs.existsSync(qrPath)) {
+        doc.image(qrPath, 50, 45, { width: 100 });
+      }
       
     doc.end();
     const htmlContent = `
