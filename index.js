@@ -507,10 +507,14 @@ app.post('/api/clientes/:clientId/invoices', async (req, res) => {
 
     doc.moveDown(2);
 
+    const clientAddress = cliente.services.length > 0 && cliente.services[0].domains.length > 0
+    ? cliente.services[0].domains.join(', ')
+    : 'Dirección no proporcionada';
+
     // Add client details
     doc.text(`Facturado a:`, 50, 160)
       .text(`${cliente.name}`, 50, 175)
-      // .text(`${cliente.services.domains || 'Dirección no proporcionada'}`, 50, 190)
+      .text(`${clientAddress}`, 50, 190)
       .text(`${cliente.city || ''}, ${cliente.state || ''}, ${cliente.zip || ''}`, 50, 205)
       .text(`${cliente.country || 'Argentina'}`, 50, 220);
 
@@ -559,12 +563,15 @@ app.post('/api/clientes/:clientId/invoices', async (req, res) => {
 
     // Add custom message at the bottom
     const customMessageY = doc.y + 40;
-    doc.text('Puedes transferir a la cuenta de tu preferencia y debes enviar el comprobante al siguiente número +54 9 11 3507-2413', 50, customMessageY);
+    doc.text('O escanea el  QR y paga', 50, customMessageY);
 
     const qrPath = "./qr.png"; // Replace with the path to your logo
       if (fs.existsSync(qrPath)) {
-        doc.image(qrPath, 200, 605, { width: 200 });
+        doc.image(qrPath, 220, 585, { width: 200 });
       }
+
+      doc.text('Luego de transferir a la cuenta de tu preferencia debes enviar el comprobante al número de administracion de Lionseg +54 9 11 3507-2413', 50, customMessageY);
+
       
     doc.end();
     const htmlContent = `
