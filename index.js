@@ -570,7 +570,7 @@ app.post('/api/clientes/:clientId/invoices', async (req, res) => {
         doc.image(qrPath, 220, 505, { width: 200 });
       }
 
-      doc.text('Luego de transferir a la cuenta de tu preferencia debes enviar el comprobante al número de administracion de Lionseg +54 9 11 3507-2413', 220, 620);
+      doc.text('Luego de transferir a la cuenta de tu preferencia debes enviar el comprobante al número de administracion de Lionseg +54 9 11 3507-2413', 220, 670);
 
       
     doc.end();
