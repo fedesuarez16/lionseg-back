@@ -491,8 +491,10 @@ app.post('/api/clientes/:clientId/invoices', async (req, res) => {
     doc.pipe(fs.createWriteStream(`public/facturas/${fileName}`));
 
     // Add invoice title
-    doc.fontSize(20).text('Factura', 110, 57);
-
+    const logoPath = "./logo.png"; // Replace with the path to your logo
+      if (fs.existsSync(logoPath)) {
+        doc.image(logoPath, 50, 45, { width: 100 });
+      }
     // Add invoice metadata
     const invoiceDate = new Date();
     const expirationDate = new Date(fechaVencimiento);
