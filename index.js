@@ -563,14 +563,14 @@ app.post('/api/clientes/:clientId/invoices', async (req, res) => {
 
     // Add custom message at the bottom
     const customMessageY = doc.y + 40;
-    doc.text('O escanea el  QR y paga', 220, customMessageY);
+    doc.text('O escanea el  QR y paga', 40, customMessageY);
 
     const qrPath = "./qr.png"; // Replace with the path to your logo
       if (fs.existsSync(qrPath)) {
         doc.image(qrPath, 220, 565, { width: 200 });
       }
 
-      doc.text('Luego de transferir a la cuenta de tu preferencia debes enviar el comprobante al número de administracion de Lionseg +54 9 11 3507-2413', 220, 580);
+      doc.text('Luego de transferir a la cuenta de tu preferencia debes enviar el comprobante al número de administracion de Lionseg +54 9 11 3507-2413', 220, 880);
 
       
     doc.end();
