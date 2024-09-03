@@ -510,9 +510,9 @@ app.post('/api/clientes/:clientId/invoices', async (req, res) => {
     // Add client details
     doc.text(`Facturado a:`, 50, 160)
       .text(`${cliente.name}`, 50, 175)
-      .text(`${cliente.address || 'Dirección no proporcionada'}`, 50, 190)
+      .text(`${cliente.domains || 'Dirección no proporcionada'}`, 50, 190)
       .text(`${cliente.city || ''}, ${cliente.state || ''}, ${cliente.zip || ''}`, 50, 205)
-      .text(`${cliente.country || 'País no proporcionado'}`, 50, 220);
+      .text(`${cliente.country || 'Argentina'}`, 50, 220);
 
     doc.moveDown(2);
 
