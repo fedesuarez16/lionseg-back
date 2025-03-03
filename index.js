@@ -8,7 +8,7 @@
   const cron = require('node-cron'); // Importa node-cron
   const Ingreso = require('./models/Ingreso'); // Asegúrate de importar el modelo de Ingreso
   const transporter = require('./nodemailerConfig');
-
+  
   // Connect to your MongoDB database
   mongoose.connect('mongodb+srv://fedesuarez16:Fedesss10@mydb.m6gwsyc.mongodb.net/?retryWrites=true&w=majority', {
     useNewUrlParser: true,
@@ -329,6 +329,37 @@ app.post('/api/generar-facturas', async (req, res) => {
     res.status(500).json({ error });
   }
 });
+
+app.get('/api/generar-link-whatsapp/:clienteId/:invoiceId', async (req, res) => {
+  const { clienteId, invoiceId } = req.params;
+
+  try {
+      const cliente = await Cliente.findById(clienteId);
+      if (!cliente) {
+          return res.status(404).json({ error: 'Cliente no encontrado' });
+      }
+
+      const factura = cliente.invoiceLinks.find(link => link._id.toString() === invoiceId);
+      if (!factura) {
+          return res.status(404).json({ error: 'Factura no encontrada' });
+      }
+
+      const total = factura.total || 0;
+      const numeroFactura = factura.invoiceNumber || 'N/A';
+
+      const mensaje = `Hola ${cliente.name}, te enviamos tu factura *#${numeroFactura}* por un total de *$${total.toFixed(2)} ARS*. 
+Puedes descargarla aquí: ${factura.url}`;
+      
+      const linkWhatsApp = `https://wa.me/${cliente.phoneNumber}?text=${encodeURIComponent(mensaje)}`;
+
+      res.json({ link: linkWhatsApp });
+
+  } catch (error) {
+      console.error('Error al generar el link de WhatsApp:', error);
+      res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
 
 
  
