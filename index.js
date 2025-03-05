@@ -20,8 +20,11 @@
 
   // Configuración de CORS
   app.use(cors({
-    origin: ['https://lionseg-erp.vercel.app', 'http://localhost:3000'] // Añade todos los orígenes permitidos aquí
+    origin: ['https://lionseg-erp.vercel.app'
+      
+    ]
   }));
+  
 
   app.use(bodyParser.json());
   // Serve static files from the 'public' directory
@@ -260,11 +263,7 @@ app.post('/api/generar-facturas', async (req, res) => {
       const customMessageY = doc.y + 20;
       doc.text('Puedes transferir a la cuenta de tu preferencia y debes enviar el comprobante al siguiente número +54 9 11 3507-2413', 50, customMessageY);
 
-     
-
       doc.end();
-
-        
 
       const invoice = {
         fileName,
@@ -329,39 +328,6 @@ app.post('/api/generar-facturas', async (req, res) => {
     res.status(500).json({ error });
   }
 });
-
-app.get('/api/generar-link-whatsapp/:clienteId/:invoiceId', async (req, res) => {
-  const { clienteId, invoiceId } = req.params;
-
-  try {
-      const cliente = await Cliente.findById(clienteId);
-      if (!cliente) {
-          return res.status(404).json({ error: 'Cliente no encontrado' });
-      }
-
-      const factura = cliente.invoiceLinks.find(link => link._id.toString() === invoiceId);
-      if (!factura) {
-          return res.status(404).json({ error: 'Factura no encontrada' });
-      }
-
-      const total = factura.total || 0;
-      const numeroFactura = factura.invoiceNumber || 'N/A';
-
-      const mensaje = `Hola ${cliente.name}, te enviamos tu factura *#${numeroFactura}* por un total de *$${total.toFixed(2)} ARS*. 
-Puedes descargarla aquí: ${factura.url}`;
-      
-      const linkWhatsApp = `https://wa.me/${cliente.phoneNumber}?text=${encodeURIComponent(mensaje)}`;
-
-      res.json({ link: linkWhatsApp });
-
-  } catch (error) {
-      console.error('Error al generar el link de WhatsApp:', error);
-      res.status(500).json({ error: 'Error interno del servidor' });
-  }
-});
-
-
-
  
 
  // Define the route to update the state of an invoice link
@@ -558,17 +524,27 @@ app.post('/api/clientes/:clientId/invoices', async (req, res) => {
       .text('Descripción', 50, 280, { bold: true })
       .text('Total', 450, 280, { align: 'right', bold: true });
 
-    const y = 305;
-    // Background for the row
-    doc.rect(50, y - 5, 500, 20).fill('#f0f0f0'); // Lighter grey background for row
-    doc.fillColor('black').fontSize(10)
-      .text(descripcion, 50, y)
-      .text(`$${parseFloat(monto).toFixed(2)} ARS`, 450, y, { align: 'right' });
+      let y = 305; // Posición inicial
 
-    const total = parseFloat(monto);
+      cliente.services.forEach((service, index) => {
+        // Alternar color de fondo en filas para mejor visibilidad
+        if (index % 2 === 0) {
+          doc.rect(50, y - 5, 500, 20).fill('#f0f0f0');
+        } else {
+          doc.rect(50, y - 5, 500, 20).fill('#ffffff');
+        }
+        doc.fillColor('black').fontSize(10)
+          .text(service.description || "Servicio sin descripción", 50, y)
+          .text(`$${parseFloat(service.price || 0).toFixed(2)} ARS`, 450, y, { align: 'right' });
+      
+        y += 25; // Espaciado entre filas
+      });
+      
 
+      const total = cliente.services.reduce((sum, service) => sum + parseFloat(service.price || 0), 0);
+      doc.text(`Total: $${total.toFixed(2)} ARS`, 450, y + 50, { align: 'right', bold: true });
+      
     // Add totals
-    doc.text(`Total: $${total.toFixed(2)} ARS`, 450, y + 50, { align: 'right', bold: true });
 
     // Add payment methods
     doc.moveDown(2);
