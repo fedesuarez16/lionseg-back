@@ -524,27 +524,17 @@ app.post('/api/clientes/:clientId/invoices', async (req, res) => {
       .text('Descripción', 50, 280, { bold: true })
       .text('Total', 450, 280, { align: 'right', bold: true });
 
-      let y = 305; // Posición inicial
+    const y = 305;
+    // Background for the row
+    doc.rect(50, y - 5, 500, 20).fill('#f0f0f0'); // Lighter grey background for row
+    doc.fillColor('black').fontSize(10)
+      .text(descripcion, 50, y)
+      .text(`$${parseFloat(monto).toFixed(2)} ARS`, 450, y, { align: 'right' });
 
-      cliente.services.forEach((service, index) => {
-        // Alternar color de fondo en filas para mejor visibilidad
-        if (index % 2 === 0) {
-          doc.rect(50, y - 5, 500, 20).fill('#f0f0f0');
-        } else {
-          doc.rect(50, y - 5, 500, 20).fill('#ffffff');
-        }
-        doc.fillColor('black').fontSize(10)
-          .text(service.description || "Servicio sin descripción", 50, y)
-          .text(`$${parseFloat(service.price || 0).toFixed(2)} ARS`, 450, y, { align: 'right' });
-      
-        y += 25; // Espaciado entre filas
-      });
-      
+    const total = parseFloat(monto);
 
-      const total = cliente.services.reduce((sum, service) => sum + parseFloat(service.price || 0), 0);
-      doc.text(`Total: $${total.toFixed(2)} ARS`, 450, y + 50, { align: 'right', bold: true });
-      
     // Add totals
+    doc.text(`Total: $${total.toFixed(2)} ARS`, 450, y + 50, { align: 'right', bold: true });
 
     // Add payment methods
     doc.moveDown(2);
