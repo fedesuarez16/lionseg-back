@@ -424,9 +424,6 @@ app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
 
-
-
-
   // Ruta para obtener el total de ingresos
 app.get('/api/total-ingresos', async (req, res) => {
   try {
@@ -638,7 +635,7 @@ app.post('/api/clientes/:clientId/invoices', async (req, res) => {
     res.status(201).send({ message: 'Factura creada exitosamente', factura: nuevaFactura });
   } catch (error) {
     console.error('Error al crear la factura:', error);
-    res.status(500).send({ message: 'Error al crear la factura', error });
+    res.status(500).send({ message: 'Error al crear la facturas', error });
   }
 });
 
