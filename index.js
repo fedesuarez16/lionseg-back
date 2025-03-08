@@ -534,12 +534,9 @@ cliente.services.forEach((service, index) => {
 
     let total = 0; // Asegurar que total está declarado antes de usarlo
 
-items.forEach(item => {
-    total += item.monto; // Si item.monto existe
-});
 
 
-  total += parseFloat(service.monto); // Suma el monto de cada servicio al total
+  total += parseFloat(service.price); // Suma el monto de cada servicio al total
 });
 
 // Actualiza el total en el PDF con la suma de todos los servicios
