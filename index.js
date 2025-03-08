@@ -532,6 +532,13 @@ cliente.services.forEach((service, index) => {
     .text(service.descripcion, 50, y)
     .text(`$${parseFloat(service.monto).toFixed(2)} ARS`, 450, y, { align: 'right' });
 
+    let total = 0; // Asegurar que total está declarado antes de usarlo
+
+items.forEach(item => {
+    total += item.monto; // Si item.monto existe
+});
+
+
   total += parseFloat(service.monto); // Suma el monto de cada servicio al total
 });
 
