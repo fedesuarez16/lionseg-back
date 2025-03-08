@@ -520,17 +520,24 @@ app.post('/api/clientes/:clientId/invoices', async (req, res) => {
       .text('Descripción', 50, 280, { bold: true })
       .text('Total', 450, 280, { align: 'right', bold: true });
 
-      const y = 305;
-      // Background for the row
-      doc.rect(50, y - 5, 500, 20).fill('#f0f0f0'); // Lighter grey background for row
-      doc.fillColor('black').fontSize(10)
-        .text(descripcion, 50, y)
-        .text(`$${parseFloat(monto).toFixed(2)} ARS`, 450, y, { align: 'right' });
-  
-      const total = parseFloat(monto);
-  
-      // Add totals
-      doc.text(`Total: $${total.toFixed(2)} ARS`, 450, y + 50, { align: 'right', bold: true });
+    // Reemplaza la sección de Add service details con el siguiente código
+// Add service details
+const startY = 305; // Posición inicial de los servicios
+
+cliente.services.forEach((service, index) => {
+  const y = startY + index * 25; // Incrementa la posición Y para cada servicio
+
+  doc.rect(50, y - 5, 500, 20).fill('#f0f0f0'); // Lighter grey background for row
+  doc.fillColor('black').fontSize(10)
+    .text(service.descripcion, 50, y)
+    .text(`$${parseFloat(service.monto).toFixed(2)} ARS`, 450, y, { align: 'right' });
+
+  total += parseFloat(service.monto); // Suma el monto de cada servicio al total
+});
+
+// Actualiza el total en el PDF con la suma de todos los servicios
+doc.text(`Total: $${total.toFixed(2)} ARS`, 450, startY + cliente.services.length * 25 + 50, { align: 'right', bold: true });
+
   
       
 
