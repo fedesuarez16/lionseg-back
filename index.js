@@ -522,24 +522,19 @@ app.post('/api/clientes/:clientId/invoices', async (req, res) => {
 
      // Reemplaza la sección de Add service details con el siguiente código
 // Add service details
-const startY = 305; // Posición inicial de los servicios
 
-cliente.services.forEach((service, index) => {
-  const y = startY + index * 25; // Incrementa la posición Y para cada servicio
+          const y = 305;
+          // Background for the row
+          doc.rect(50, y - 5, 500, 20).fill('#f0f0f0'); // Lighter grey background for row
+          doc.fillColor('black').fontSize(10)
+            .text(descripcion, 50, y)
+            .text(`$${parseFloat(monto).toFixed(2)} ARS`, 450, y, { align: 'right' });
 
-  doc.rect(50, y - 5, 500, 20).fill('#f0f0f0'); // Lighter grey background for row
-  doc.fillColor('black').fontSize(10)
-    .text(descripcion, 50, y)
-    .text(`$${parseFloat(monto).toFixed(2)} ARS`, 450, y, { align: 'right' });
+          const total = parseFloat(monto);
 
-  const total = parseFloat(monto); // Suma el monto de cada servicio al total
+          // Add totals
+          doc.text(`Total: $${total.toFixed(2)} ARS`, 450, y + 50, { align: 'right', bold: true });
 
-// Actualiza el total en el PDF con la suma de todos los servicios
-doc.text(`Total: $${total.toFixed(2)} ARS`, 450, startY + cliente.services.length * 25 + 50, { align: 'right', bold: true 
-
-});
-
-});
 
 
   
