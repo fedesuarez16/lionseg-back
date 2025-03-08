@@ -520,7 +520,6 @@ app.post('/api/clientes/:clientId/invoices', async (req, res) => {
     doc.fillColor('black').fontSize(10)
       .text('Descripción', 50, 280, { bold: true })
       .text('Total', 450, 280, { align: 'right', bold: true });
-
       let y = 305; // Posición inicial para los servicios
 
       cliente.services.forEach((service, index) => {
@@ -533,10 +532,10 @@ app.post('/api/clientes/:clientId/invoices', async (req, res) => {
         doc.fillColor('black').fontSize(10)
           .text(service.description, 50, y)
           .text(`$${parseFloat(service.amount).toFixed(2)} ARS`, 450, y, { align: 'right' });
-      
+
         y += 25; // Mover la posición para el siguiente servicio
       });
-      
+
       const total = cliente.services.reduce((acc, service) => acc + parseFloat(service.amount), 0);
       doc.text(`Total: $${total.toFixed(2)} ARS`, 450, y + 20, { align: 'right', bold: true });
       
