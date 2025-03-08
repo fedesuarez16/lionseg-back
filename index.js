@@ -529,8 +529,8 @@ cliente.services.forEach((service, index) => {
 
   doc.rect(50, y - 5, 500, 20).fill('#f0f0f0'); // Lighter grey background for row
   doc.fillColor('black').fontSize(10)
-    .text(service.descripcion, 50, y)
-    .text(`$${parseFloat(service.monto).toFixed(2)} ARS`, 450, y, { align: 'right' });
+    .text(service.producto, 50, y)
+    .text(`$${parseFloat(service.price).toFixed(2)} ARS`, 450, y, { align: 'right' });
 
     let total = 0; // Asegurar que total está declarado antes de usarlo
 
