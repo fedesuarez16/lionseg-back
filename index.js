@@ -20,9 +20,7 @@
 
   // Configuración de CORS
   app.use(cors({
-    origin: ['https://lionseg-erp.vercel.app'
-      
-    ]
+    origin: ['https://lionseg-erp.vercel.app', 'http://localhost:3000'] // Añade todos los orígenes permitidos aquí
   }));
   
 
