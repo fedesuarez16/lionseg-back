@@ -523,22 +523,42 @@ app.post('/api/clientes/:clientId/invoices', async (req, res) => {
      // Reemplaza la sección de Add service details con el siguiente código
 // Add service details
 
-          const y = 305;
-          // Background for the row
-          doc.rect(50, y - 5, 500, 20).fill('#f0f0f0'); // Lighter grey background for row
-          doc.fillColor('black').fontSize(10)
-            .text(descripcion, 50, y)
-            .text(`$${parseFloat(monto).toFixed(2)} ARS`, 450, y, { align: 'right' });
+let y = 305; // Posición inicial
+let total = 0;
 
-          const total = parseFloat(monto);
+// Dibujar fondo del encabezado de la tabla
+doc.rect(50, 275, 500, 20).fill('#d3d3d3'); // Fondo gris claro para encabezado
+doc.fillColor('black').fontSize(10)
+  .text('Descripción', 50, 280, { bold: true })
+  .text('Total', 450, 280, { align: 'right', bold: true });
 
-          // Add totals
-          doc.text(`Total: $${total.toFixed(2)} ARS`, 450, y + 50, { align: 'right', bold: true });
+// Iterar sobre los servicios del cliente y agregarlos al PDF
+cliente.services.forEach((servicio, index) => {
+  const servicioDescripcion = servicio.producto || 'Servicio sin descripción';
+  const servicioPrecio = servicio.price || 0;
 
+  // Dibujar fondo de la fila (alternando colores para mejor visualización)
+  if (index % 2 === 0) {
+    doc.rect(50, y - 5, 500, 20).fill('#f0f0f0'); // Gris más claro
+  } else {
+    doc.rect(50, y - 5, 500, 20).fill('#ffffff'); // Blanco
+  }
+  doc.fillColor('black').fontSize(10);
 
+  // Agregar texto de cada servicio
+  doc.text(servicioDescripcion, 50, y)
+     .text(`$${parseFloat(servicioPrecio).toFixed(2)} ARS`, 450, y, { align: 'right' });
 
-  
-      
+  // Incrementar total
+  total += parseFloat(servicioPrecio);
+
+  // Ajustar posición para la siguiente fila
+  y += 25;
+});
+
+// Agregar total final al PDF
+doc.fontSize(12).fillColor('black').text(`Total: $${total.toFixed(2)} ARS`, 450, y + 20, { align: 'right', bold: true });
+
 
     // Add payment methods
     doc.moveDown(2);
