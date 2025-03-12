@@ -439,3 +439,105 @@ app.delete('/api/ingresos', async (req, res) => {
   }
 });
 
+app.post('/api/clientes/:clientId/invoice', async (req, res) => {
+  const { clientId } = req.params;
+  const { monto, fechaVencimiento, descripcion } = req.body;
+
+  const fileName = `IND_${Date.now()}.pdf`;
+
+  console.log('Datos recibidos del frontend:', req.body); // Verificar que los datos se reciban correctamente
+
+  try {
+    // Buscar al cliente por su ID
+    const cliente = await Cliente.findById(clientId);
+    if (!cliente) {
+      console.error('Cliente no encontrado:', clientId);
+      return res.status(404).send({ message: 'Cliente no encontrado' });
+    }
+
+    const doc = new PDFDocument();
+    const dirFacturas = 'public/facturas';
+    if (!fs.existsSync(dirFacturas)) {
+      fs.mkdirSync(dirFacturas, { recursive: true });
+    }
+
+    doc.pipe(fs.createWriteStream(`public/facturas/${fileName}`));
+
+    const logoPath = "./logo.png";
+    if (fs.existsSync(logoPath)) {
+      doc.image(logoPath, 50, 45, { width: 100 });
+    }
+
+    const invoiceDate = new Date();
+    const expirationDate = new Date(fechaVencimiento);
+    const invoiceNumber = `INV-${Date.now()}`;
+
+    doc.fontSize(10)
+      .text(`Fecha de la Factura: ${invoiceDate.toLocaleDateString()}`, 200, 65, { align: 'right' })
+      .text(`Fecha de Vencimiento: ${expirationDate.toLocaleDateString()}`, 200, 80, { align: 'right' })
+      .text(`Número de Factura: ${invoiceNumber}`, 200, 95, { align: 'right' });
+
+    doc.moveDown(2);
+
+    const clientAddress = cliente.services.length > 0 && cliente.services[0].domains.length > 0
+      ? cliente.services[0].domains.join(', ')
+      : 'Dirección no proporcionada';
+
+    doc.text(`Facturado a:`, 50, 160)
+      .text(`${cliente.name}`, 50, 175)
+      .text(`${clientAddress}`, 50, 190)
+      .text(`${cliente.city || ''}, ${cliente.state || ''}, ${cliente.zip || ''}`, 50, 205)
+      .text(`${cliente.country || 'Argentina'}`, 50, 220);
+
+    doc.moveDown(2);
+
+    doc.rect(45, 270, 510, 25).fill('#d3d3d3').stroke(); // Encabezado con sombra
+
+    doc.fillColor('black').fontSize(10)
+      .text('Descripción', 55, 278, { bold: true })
+      .text('Total', 460, 278, { align: 'right', bold: true });
+
+    let y = 305;
+
+    // Usar los datos enviados desde el frontend
+    doc.rect(45, y - 5, 510, 20).fill('#f9f9f9').stroke();
+    doc.fillColor('black').fontSize(10);
+
+    doc.text(descripcion, 55, y)
+       .text(`$${parseFloat(monto).toFixed(2)} ARS`, 460, y, { align: 'right' });
+
+    doc.fontSize(12).fillColor('black').text(`Total: $${parseFloat(monto).toFixed(2)} ARS`, 460, y + 20, { align: 'right', bold: true });
+
+    doc.moveDown(2);
+    doc.fontSize(10)
+      .fillColor('black')
+      .text('Métodos de Pago:', 50, y + 50)
+      .text('Banco Patagonia:', 50, y + 65)
+      .text('Alias: PAJARO.SABADO.LARGO', 50, y + 80)
+      .text('CBU: 0340040108409895361003', 50, y + 95)
+      .text('Cuenta: CA $ 040-409895361-000', 50, y + 110)
+      .text('CUIL: 20224964162', 50, y + 125);
+
+    doc.text('Mercado Pago:', 300, y + 65)
+      .text('Alias: lionseg.mp', 300, y + 80)
+      .text('CVU: 0000003100041927153583', 300, y + 95)
+      .text('Número: 1125071506 (Jorge Luis Castillo)', 300, y + 110);
+
+    doc.text('O escanea el QR y paga', 60, y + 160);
+
+    const qrPath = "./qr.png";
+    if (fs.existsSync(qrPath)) {
+      doc.image(qrPath, 220, y + 180, { width: 200 });
+    }
+
+    doc.text('Luego de transferir a la cuenta de tu preferencia debes enviar el comprobante al número de administracion de Lionseg +54 9 11 3507-2413', 150, y + 400);
+
+    doc.end();
+
+    res.status(201).send({ message: 'Factura generada con éxito', fileName });
+
+  } catch (error) {
+    console.error('Error al crear la factura:', error);
+    res.status(500).send({ message: 'Error interno al generar la factura' });
+  }
+});
