@@ -8,7 +8,8 @@
   const cron = require('node-cron'); // Importa node-cron
   const Ingreso = require('./models/Ingreso'); // Asegúrate de importar el modelo de Ingreso
   const transporter = require('./nodemailerConfig');
-  
+  const { Storage } = require('@google-cloud/storage');
+
   // Connect to your MongoDB database
   mongoose.connect('mongodb+srv://fedesuarez16:Fedesss10@mydb.m6gwsyc.mongodb.net/?retryWrites=true&w=majority', {
     useNewUrlParser: true,
