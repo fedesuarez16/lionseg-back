@@ -24,11 +24,6 @@
   
   }));
   
-  const storage = new Storage({
-    keyFilename: path.join(__dirname, GOOGLE_APPLICATION_CREDENTIALS), // Cambia la ruta
-  });
-  const bucketName = 'lionseg'; // Reem
-
   
 
   app.use(bodyParser.json());
