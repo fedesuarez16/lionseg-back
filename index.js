@@ -13,7 +13,7 @@
   
   // Configuración de Google Cloud Storage
   const storage = new Storage({
-    keyFilename: '../lionseg-c35eede61870.json', // Ruta a tu JSON de credenciales
+    keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS    , // Ruta a tu JSON de credenciales
   });
   
   const bucketName = 'lionseg';
