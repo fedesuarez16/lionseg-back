@@ -8,9 +8,6 @@
   const cron = require('node-cron'); // Importa node-cron
   const Ingreso = require('./models/Ingreso'); // Asegúrate de importar el modelo de Ingreso
   const transporter = require('./nodemailerConfig');
-
-  const { Storage } = require('@google-cloud/storage');
-
   
   // Connect to your MongoDB database
   mongoose.connect('mongodb+srv://fedesuarez16:Fedesss10@mydb.m6gwsyc.mongodb.net/?retryWrites=true&w=majority', {
@@ -26,150 +23,17 @@
     origin: ['https://lionseg-erp.vercel.app', 'http://localhost:3000'] // Añade todos los orígenes permitidos aquí      
   
   }));
+  
+  const storage = new Storage({
+    keyFilename: path.join(__dirname, GOOGLE_APPLICATION_CREDENTIALS), // Cambia la ruta
+  });
+  const bucketName = 'lionseg'; // Reem
+
+  
 
   app.use(bodyParser.json());
   // Serve static files from the 'public' directory
   app.use(express.static('public'));
-
-// Configurar Google Cloud Storage
-const storage = new Storage({
-  keyFilename: path.join(__dirname, '../lionseg-c35eede61870.json'), // Ruta a tu clave JSON
-});
-
-const bucketName = "lionseg"; // Reemplaza con el nombre de tu bucket en Google Cloud Storage
-
-
-  
-app.post('/api/clientes/:clientId/invoices', async (req, res) => {
-  const { clientId } = req.params;
-  const { monto, fechaVencimiento, descripcion } = req.body;
-
-  const fileName = `IND_${Date.now()}.pdf`;
-  const localFilePath = path.join(__dirname, `../public/facturas/${fileName}`);
-
-  try {
-    // Buscar cliente
-    const cliente = await Cliente.findById(clientId);
-    if (!cliente) {
-      return res.status(404).send({ message: 'Cliente no encontrado' });
-    }
-
-    // Crear directorio si no existe
-    const dirFacturas = path.join(__dirname, '../public/facturas');
-    if (!fs.existsSync(dirFacturas)) {
-      fs.mkdirSync(dirFacturas, { recursive: true });
-    }
-
-    // Crear factura en PDF
-    const doc = new PDFDocument();
-    const stream = fs.createWriteStream(localFilePath);
-    doc.pipe(stream);
-
-    // Agregar logo
-    const logoPath = path.join(__dirname, '../logo.png');
-    if (fs.existsSync(logoPath)) {
-      doc.image(logoPath, 50, 45, { width: 100 });
-    }
-
-    const invoiceDate = new Date();
-    const expirationDate = new Date(fechaVencimiento);
-    const invoiceNumber = `INV-${Date.now()}`;
-
-    doc.fontSize(10)
-      .text(`Fecha de la Factura: ${invoiceDate.toLocaleDateString()}`, 200, 65, { align: 'right' })
-      .text(`Fecha de Vencimiento: ${expirationDate.toLocaleDateString()}`, 200, 80, { align: 'right' })
-      .text(`Número de Factura: ${invoiceNumber}`, 200, 95, { align: 'right' });
-
-    // Datos del cliente
-    doc.text(`Facturado a:`, 50, 160)
-      .text(cliente.name, 50, 175)
-      .text(cliente.email, 50, 190);
-
-    // Agregar servicios y total
-    let y = 250;
-    let total = 0;
-    cliente.services.forEach((servicio, index) => {
-      doc.text(servicio.producto || 'Servicio sin descripción', 55, y)
-        .text(`$${servicio.price.toFixed(2)} ARS`, 460, y, { align: 'right' });
-
-      total += servicio.price;
-      y += 25;
-    });
-
-    doc.fontSize(12)
-      .text(`Total: $${total.toFixed(2)} ARS`, 460, y + 20, { align: 'right' });
-
-    doc.end();
-
-    // Esperar a que el PDF se genere antes de subirlo
-    await new Promise((resolve) => stream.on('finish', resolve));
-
-    // Subir a Google Cloud Storage
-    const bucket = storage.bucket(bucketName);
-    await bucket.upload(localFilePath, {
-      destination: `facturas/${fileName}`,
-      public: true, // Permitir acceso público
-    });
-
-    // Obtener la URL pública
-    const publicUrl = `https://storage.googleapis.com/${bucketName}/facturas/${fileName}`;
-
-    // Crear nueva factura en DB
-    const nuevaFactura = {
-      fileName,
-      url: publicUrl,
-      registrationDate: invoiceDate,
-      expirationDate,
-      total,
-    };
-
-    cliente.invoiceLinks.push(nuevaFactura);
-    await cliente.save();
-
-    // Contenido del correo
-    const htmlContent = `
-      <div style="font-family: Arial, sans-serif; height:auto; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd;">
-        <div style="text-align: center;">
-          <img src="https://storage.googleapis.com/lionseg/logolionseg.png" alt="Logo" style="width: 100px;">
-        </div>
-        <h2 style="text-align: center; color: #333;">Factura Generada</h2>
-        <p style="color: #666;">Estimado ${cliente.name},</p>
-        <p style="color: #666;">Se ha generado una nueva factura. Puedes descargarla desde el siguiente enlace:</p>
-        <p style="text-align: center;">
-          <a href="${publicUrl}" style="background-color: #1a73e8; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Descargar Factura</a>
-        </p>
-        <p style="color: #666;">Total a pagar: <strong>$${total.toFixed(2)} ARS</strong></p>
-        <p style="color: #666;">Métodos de pago:</p>
-        <ul style="color: #666;">
-          <li>Transferencia Bancaria: CBU 0340040108409895361003</li>
-          <li>MercadoPago: Alias lionseg.mp</li>
-          <li>Efectivo</li>
-        </ul>
-        <p style="color: #666;">Por favor, realiza el pago antes del <strong>${expirationDate.toLocaleDateString()}</strong> para evitar recargos.</p>
-        <p style="color: #666;">Enviar comprobante de pago al siguiente número +54 9 11 3507-2413.</p>
-        <div style="border-top: 1px solid #ddd; margin-top: 20px; padding-top: 20px; text-align: center;">
-          <p style="color: #666;">Sistema desarrollado por <a href="https://www.flipwebco.com" style="color: #1a73e8; text-decoration: none;">Flipwebco</a></p>
-        </div>
-      </div>
-    `;
-
-    // Enviar correo electrónico
-    await transporter.sendMail({
-      from: 'coflipweb@gmail.com',
-      to: cliente.email,
-      subject: 'Factura Generada',
-      html: htmlContent,
-    });
-
-    // Eliminar el archivo local después de subirlo
-    fs.unlinkSync(localFilePath);
-
-    res.status(201).send({ message: 'Factura creada exitosamente', factura: nuevaFactura });
-  } catch (error) {
-    console.error('Error al crear la factura:', error);
-    res.status(500).send({ message: 'Error al crear la factura', error });
-  }
-});
 
   // Create a new client
   app.post('/api/clientes', async (req, res) => {
@@ -406,4 +270,174 @@ app.delete('/api/ingresos', async (req, res) => {
   }
 });
 
+
+app.post('/api/clientes/:clientId/invoices', async (req, res) => {
+  const { clientId } = req.params;
+  const { monto, fechaVencimiento, descripcion } = req.body;
+
+  const fileName = `IND_${Date.now()}.pdf`;
+
+  console.log('Datos recibidos del frontend:', req.body); // Verificar que los datos se reciban correctamente
+
+  try {
+    // Buscar al cliente por su ID
+    const cliente = await Cliente.findById(clientId);
+    if (!cliente) {
+      console.error('Cliente no encontrado:', clientId);
+      return res.status(404).send({ message: 'Cliente no encontrado' });
+    }
+
+    const doc = new PDFDocument();
+    const dirFacturas = 'public/facturas';
+    if (!fs.existsSync(dirFacturas)) {
+      const dirPublic = 'public';
+      if (!fs.existsSync(dirPublic)) {
+        fs.mkdirSync(dirPublic);
+      }
+      fs.mkdirSync(dirFacturas);
+    }
+
+    doc.pipe(fs.createWriteStream(`public/facturas/${fileName}`));
+
+const logoPath = "./logo.png";
+if (fs.existsSync(logoPath)) {
+  doc.image(logoPath, 50, 45, { width: 100 });
+}
+
+const invoiceDate = new Date();
+const expirationDate = new Date(fechaVencimiento);
+const invoiceNumber = `INV-${Date.now()}`;
+
+doc.fontSize(10)
+  .text(`Fecha de la Factura: ${invoiceDate.toLocaleDateString()}`, 200, 65, { align: 'right' })
+  .text(`Fecha de Vencimiento: ${expirationDate.toLocaleDateString()}`, 200, 80, { align: 'right' })
+  .text(`Número de Factura: ${invoiceNumber}`, 200, 95, { align: 'right' });
+
+doc.moveDown(2);
+
+const clientAddress = cliente.services.length > 0 && cliente.services[0].domains.length > 0
+  ? cliente.services[0].domains.join(', ')
+  : 'Dirección no proporcionada';
+
+doc.text(`Facturado a:`, 50, 160)
+  .text(`${cliente.name}`, 50, 175)
+  .text(`${clientAddress}`, 50, 190)
+  .text(`${cliente.city || ''}, ${cliente.state || ''}, ${cliente.zip || ''}`, 50, 205)
+  .text(`${cliente.country || 'Argentina'}`, 50, 220);
+
+doc.moveDown(2);
+
+doc.rect(45, 270, 510, 25).fill('#d3d3d3').stroke(); // Encabezado con sombra
+
+doc.fillColor('black').fontSize(10)
+  .text('Descripción', 55, 278, { bold: true })
+  .text('Total', 460, 278, { align: 'right', bold: true });
+
+let y = 305;
+let total = 0;
+
+cliente.services.forEach((servicio, index) => {
+  const servicioDescripcion = servicio.producto || 'Servicio sin descripción';
+  const servicioPrecio = servicio.price || 0;
+
+  doc.rect(45, y - 5, 510, 20).fill(index % 2 === 0 ? '#f9f9f9' : '#ffffff').stroke();
+  doc.fillColor('black').fontSize(10);
+
+  doc.text(servicioDescripcion, 55, y)
+     .text(`$${parseFloat(servicioPrecio).toFixed(2)} ARS`, 460, y, { align: 'right' });
+
+  total += parseFloat(servicioPrecio);
+  y += 25;
+});
+
+doc.fontSize(12).fillColor('black').text(`Total: $${total.toFixed(2)} ARS`, 460, y + 20, { align: 'right', bold: true });
+
+doc.moveDown(2);
+doc.fontSize(10)
+  .fillColor('black')
+  .text('Métodos de Pago:', 50, y + 50)
+  .text('Banco Patagonia:', 50, y + 65)
+  .text('Alias: PAJARO.SABADO.LARGO', 50, y + 80)
+  .text('CBU: 0340040108409895361003', 50, y + 95)
+  .text('Cuenta: CA $ 040-409895361-000', 50, y + 110)
+  .text('CUIL: 20224964162', 50, y + 125);
+
+doc.text('Mercado Pago:', 300, y + 65)
+  .text('Alias: lionseg.mp', 300, y + 80)
+  .text('CVU: 0000003100041927153583', 300, y + 95)
+  .text('Número: 1125071506 (Jorge Luis Castillo)', 300, y + 110);
+
+doc.text('O escanea el QR y paga', 60, y + 160);
+
+const qrPath = "./qr.png";
+if (fs.existsSync(qrPath)) {
+  doc.image(qrPath, 220, y + 180, { width: 200 });
+}
+
+doc.text('Luego de transferir a la cuenta de tu preferencia debes enviar el comprobante al número de administracion de Lionseg +54 9 11 3507-2413', 150, y + 400);
+
+doc.end();
+
+    const htmlContent = `
+    <div style="font-family: Arial, sans-serif; height:auto; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd;">
+      <div style="text-align: center;">
+        <img src="https://storage.googleapis.com/lionseg/logolionseg.png" alt="Logo" style="width: 100px;">
+      </div>
+      <h2 style="text-align: center; color: #333;">Factura Generada</h2>
+      <p style="color: #666;">Estimado ${cliente.name},</p>
+      <p style="color: #666;">Te informamos que se ha generado una nueva factura. Puedes descargarla desde el enlace adjunto:</p>
+      <p style="color: #666;">Total a pagar: <strong>$${total.toFixed(2)} ARS</strong></p>
+      <p style="color: #666;">Métodos de pago:</p>
+      <ul style="color: #666;">
+        <li>Transferencia Bancaria: CBU 0340040108409895361003</li>
+        <li>MercadoPago: Alias lionseg.mp</li>
+        <li>Efectivo</li>
+      </ul>
+      <p style="color: #666;">Por favor, realiza el pago antes del <strong>${expirationDate.toLocaleDateString()}</strong> para evitar recargos .</p>
+        <p style="color: #666;">Enviar comprobante de pago al siguiente numero +54 9 11 3507-2413. El pago no sera procesado hasta recibir el comprobante</p>
+
+      <div style="text-align: center; margin-top: 20px;">
+        <img src="https://storage.googleapis.com/lionseg/QR_43096512.pdf.png" alt="QR Code" style="width: 150px;">
+      </div>
+      <p style="color: #666;">Gracias por confiar en nuestros servicios.</p>
+      <div style="border-top: 1px solid #ddd; margin-top: 20px; padding-top: 20px; text-align: center;">
+        <p style="color: #666;">Sistema desarrollado por <a href="https://www.flipwebco.com" style="color: #1a73e8; text-decoration: none;">Flipwebco</a></p>
+      </div>
+    </div>
+  `;
+
+    // Crear una nueva factura
+    const nuevaFactura = {
+      fileName,
+      registrationDate: invoiceDate,
+      expirationDate: expirationDate,
+      total: total,
+    };
+
+    console.log('Nueva factura creada:', nuevaFactura); // Verificar los datos de la nueva factura
+
+    // Añadir la factura al cliente
+    cliente.invoiceLinks.push(nuevaFactura);
+
+    // Guardar los cambios en la base de datos
+    await cliente.save();
+
+    console.log('Cliente actualizado:', cliente); // Verificar que el cliente se actualizó correctamente
+
+    // Enviar correo electrónico con la factura
+    await transporter.sendMail({
+      from: 'coflipweb@gmail.com',
+      to: cliente.email,
+      subject: 'Factura',
+      text: 'Se adjunta la factura.',
+      html:htmlContent,
+      attachments: [{ filename: fileName, path: `./public/facturas/${fileName}` }],
+    });
+
+    res.status(201).send({ message: 'Factura creada exitosamente', factura: nuevaFactura });
+  } catch (error) {
+    console.error('Error al crear la factura:', error);
+    res.status(500).send({ message: 'Error al crear la facturas', error });
+  }
+});
 
