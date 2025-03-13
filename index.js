@@ -538,7 +538,7 @@ app.post('/api/clientes/:clientId/invoice', async (req, res) => {
       fileName,
       registrationDate: invoiceDate,
       expirationDate: expirationDate,
-      total: total,
+      total: monto,
     };
 
     console.log('Nueva factura creada:', nuevaFactura); // Verificar los datos de la nueva factura
