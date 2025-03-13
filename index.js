@@ -557,7 +557,6 @@ app.post('/api/clientes/:clientId/invoice', async (req, res) => {
       to: cliente.email,
       subject: 'Factura',
       text: 'Se adjunta la factura.',
-      html:htmlContent,
       attachments: [{ filename: fileName, path: `./public/facturas/${fileName}` }],
     });
 
