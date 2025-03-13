@@ -534,6 +534,34 @@ app.post('/api/clientes/:clientId/invoice', async (req, res) => {
 
     doc.end();
 
+    const nuevaFactura = {
+      fileName,
+      registrationDate: invoiceDate,
+      expirationDate: expirationDate,
+      total: total,
+    };
+
+    console.log('Nueva factura creada:', nuevaFactura); // Verificar los datos de la nueva factura
+
+    // Añadir la factura al cliente
+    cliente.invoiceLinks.push(nuevaFactura);
+
+    // Guardar los cambios en la base de datos
+    await cliente.save();
+
+    console.log('Cliente actualizado:', cliente); // Verificar que el cliente se actualizó correctamente
+
+    // Enviar correo electrónico con la factura
+    await transporter.sendMail({
+      from: 'coflipweb@gmail.com',
+      to: cliente.email,
+      subject: 'Factura',
+      text: 'Se adjunta la factura.',
+      html:htmlContent,
+      attachments: [{ filename: fileName, path: `./public/facturas/${fileName}` }],
+    });
+
+
     res.status(201).send({ message: 'Factura generada con éxito', fileName });
 
   } catch (error) {
