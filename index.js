@@ -238,6 +238,48 @@ doc.end();
     }
   });
 
+  app.get('/api/clientesnew', async (req, res) => {
+    try {
+      const searchQuery = req.query.search || '';
+      const searchRegex = new RegExp(searchQuery, 'i');
+  
+      // Calcular la fecha de hace 3 meses
+      const tresMesesAtras = new Date();
+      tresMesesAtras.setMonth(tresMesesAtras.getMonth() - 3);
+  
+      let clients;
+  
+      if (searchQuery) {
+        clients = await Cliente.find({
+          $or: [
+            { name: { $regex: searchRegex } },
+            { email: { $regex: searchRegex } },
+            { phoneNumber: { $regex: searchRegex } },
+          ],
+        });
+      } else {
+        clients = await Cliente.find();
+      }
+  
+      // Filtrar facturas dentro de los últimos 3 meses en cada cliente
+      const clientsWithFilteredInvoices = clients.map(client => {
+        return {
+          ...client.toObject(), // Convertir el objeto de Mongoose en un objeto JS normal
+          invoiceLinks: client.invoiceLinks.filter(invoice => {
+            if (!invoice.date) return false; // Si no tiene fecha, ignorarla
+            const invoiceDate = new Date(invoice.date);
+            return !isNaN(invoiceDate.getTime()) && invoiceDate >= tresMesesAtras;
+          }),
+        };
+      });
+  
+      res.json(clientsWithFilteredInvoices);
+    } catch (error) {
+      res.status(500).json({ error: 'Could not retrieve clients' });
+    }
+  });
+  
+
   // Get a single client by ID
   app.get('/api/clientes/:id', async (req, res) => {
     const id = req.params.id;

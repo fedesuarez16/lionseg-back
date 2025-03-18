@@ -177,7 +177,7 @@ app.post('/api/generar-facturas', async (req, res) => {
         html:htmlContent,
         attachments: [{ filename: fileName, path: `./public/facturas/${fileName}` }],
       });
-    }
+    }   
 
     console.log('Facturas generadas con éxito');
     res.status(200).json({ message: 'Facturas generadas con éxito', enlacesFacturas });
@@ -186,4 +186,4 @@ app.post('/api/generar-facturas', async (req, res) => {
     res.status(500).json({ error });
   }
 });
- 
+    
