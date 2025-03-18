@@ -256,30 +256,21 @@ doc.end();
             { email: { $regex: searchRegex } },
             { phoneNumber: { $regex: searchRegex } },
           ],
+          'invoiceLinks.date': { $gte: tresMesesAtras }, // Filtrar facturas de los últimos 3 meses
         });
       } else {
-        clients = await Cliente.find();
+        clients = await Cliente.find({
+          'invoiceLinks.date': { $gte: tresMesesAtras },
+        });
       }
   
-      // Filtrar facturas dentro de los últimos 3 meses en cada cliente
-      const clientsWithFilteredInvoices = clients.map(client => {
-        return {
-          ...client.toObject(), // Convertir el objeto de Mongoose en un objeto JS normal
-          invoiceLinks: client.invoiceLinks.filter(invoice => {
-            if (!invoice.date) return false; // Si no tiene fecha, ignorarla
-            const invoiceDate = new Date(invoice.date);
-            return !isNaN(invoiceDate.getTime()) && invoiceDate >= tresMesesAtras;
-          }),
-        };
-      });
-  
-      res.json(clientsWithFilteredInvoices);
+      res.json(clients);
     } catch (error) {
       res.status(500).json({ error: 'Could not retrieve clients' });
     }
   });
   
-
+  
   // Get a single client by ID
   app.get('/api/clientes/:id', async (req, res) => {
     const id = req.params.id;
